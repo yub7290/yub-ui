@@ -1,12 +1,13 @@
 <template>
   <el-container class="layout-container">
-    <el-aside width="220px">
-      <Sidebar />
+    <el-aside :width="sidebarCollapsed ? '64px' : '220px'">
+      <Sidebar :collapsed="sidebarCollapsed" />
     </el-aside>
     <el-container>
       <el-header height="60px">
-        <Navbar />
+        <Navbar :collapsed="sidebarCollapsed" @toggle-collapse="toggleSidebar" />
       </el-header>
+      <TagsView />
       <el-main>
         <router-view />
       </el-main>
@@ -15,8 +16,16 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import Sidebar from './Sidebar.vue'
 import Navbar from './Navbar.vue'
+import TagsView from './TagsView.vue'
+
+const sidebarCollapsed = ref(false)
+
+function toggleSidebar() {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+}
 </script>
 
 <style scoped>
@@ -24,18 +33,20 @@ import Navbar from './Navbar.vue'
   height: 100vh;
 }
 .el-aside {
-  background-color: #304156;
+  transition: width 0.3s;
   overflow-x: hidden;
+  background: transparent;
 }
 .el-header {
   background-color: #fff;
   border-bottom: 1px solid #e6e6e6;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0 20px;
+  height: 60px !important;
 }
 .el-main {
   background-color: #f0f2f5;
+  padding: 20px;
 }
 </style>

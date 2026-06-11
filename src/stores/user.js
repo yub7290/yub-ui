@@ -19,6 +19,13 @@ export const useUserStore = defineStore('user', () => {
     return data
   }
 
+  async function getUserInfo() {
+    const res = await request.get('/auth/getUserInfo')
+    userInfo.value = res.data.user
+    menus.value = res.data.menus
+    return res.data
+  }
+
   async function logout() {
     try {
       await request.post('/auth/logout')
@@ -30,5 +37,5 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  return { token, userInfo, menus, login, logout }
+  return { token, userInfo, menus, login, logout, getUserInfo }
 })
