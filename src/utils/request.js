@@ -93,8 +93,11 @@ service.interceptors.response.use(
       try {
         // 路径参数方式调用 /api/auth/refresh/{refreshToken}
         const res = await axios.post('/api/auth/refresh/' + refreshToken)
-        const newToken = res.data.data.accessToken
-        if (!newToken) throw new Error('刷新失败：返回数据为空')
+        const refreshData = res.data
+        if (!refreshData || refreshData.code !== 200 || !refreshData.data) {
+          throw new Error(refreshData?.message || '刷新失败：返回数据为空')
+        }
+        const newToken = refreshData.data.accessToken
         setAccessToken(newToken)
         processPendingRequests(newToken)
         return service(originalRequest)
