@@ -1,62 +1,103 @@
 <template>
   <div class="login-container">
-    <div class="login-bg">
-      <div class="gradient-orb orb-1"></div>
-      <div class="gradient-orb orb-2"></div>
-      <div class="gradient-orb orb-3"></div>
-    </div>
     <div class="login-card">
-      <div class="login-header">
-        <h2 class="login-title">微厦学习系统</h2>
-        <p class="login-subtitle">在线学习考试平台</p>
+      <div class="login-brand">
+        <div class="brand-content">
+          <div class="brand-logo-wrap">
+            <img src="../../static/logo1.png" alt="智慧教育" class="brand-logo" />
+            <span class="brand-name">智慧教育系统</span>
+          </div>
+          <div class="brand-slogan">
+            <p class="slogan-text">智慧育人，启迪未来</p>
+          </div>
+        </div>
       </div>
-      <el-form ref="formRef" :model="loginForm" :rules="rules" size="large">
-        <el-form-item prop="account">
-          <el-input v-model="loginForm.account" placeholder="请输入账号">
-            <template #prefix>
-              <el-icon><User /></el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
-        <el-form-item prop="password">
-          <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" show-password @keyup.enter="handleLogin">
-            <template #prefix>
-              <el-icon><Lock /></el-icon>
-            </template>
-          </el-input>
-        </el-form-item>
-        <el-form-item prop="captchaCode">
-          <el-row :gutter="12" style="width:100%">
-            <el-col :span="14">
-              <el-input v-model="loginForm.captchaCode" placeholder="验证码">
-                <template #prefix>
-                  <el-icon><Key /></el-icon>
-                </template>
-              </el-input>
-            </el-col>
-            <el-col :span="10">
-              <img :src="captchaImage" class="captcha-img" @click="refreshCaptcha" alt="验证码" />
-            </el-col>
-          </el-row>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" :loading="loading" style="width:100%" size="large" round @click="handleLogin">
-            {{ loading ? '登录中...' : '登 录' }}
-          </el-button>
-        </el-form-item>
-      </el-form>
-      <div class="login-footer">
-        <span>&copy; 2026 微厦学习系统</span>
+
+      <div class="login-form-wrapper">
+        <h2 class="form-title">账户登录</h2>
+
+        <el-form
+          ref="formRef"
+          :model="loginForm"
+          :rules="rules"
+          size="large"
+          class="login-form"
+          @keyup.enter="handleLogin"
+        >
+          <el-form-item prop="account">
+            <el-input
+              v-model="loginForm.account"
+              placeholder="请输入账号"
+              :prefix-icon="User"
+              autofocus
+              clearable
+            />
+          </el-form-item>
+
+          <el-form-item prop="password">
+            <el-input
+              v-model="loginForm.password"
+              type="password"
+              placeholder="请输入密码"
+              :prefix-icon="Lock"
+              show-password
+              clearable
+            />
+          </el-form-item>
+
+          <el-form-item prop="captchaCode">
+            <div class="captcha-wrapper">
+              <el-input
+                v-model="loginForm.captchaCode"
+                placeholder="验证码"
+                :prefix-icon="Key"
+                class="captcha-input"
+                clearable
+              />
+              <img
+                :src="captchaImage"
+                class="captcha-img"
+                @click="refreshCaptcha"
+                alt="验证码"
+                title="点击刷新验证码"
+              />
+            </div>
+          </el-form-item>
+
+          <el-form-item>
+            <el-checkbox v-model="rememberMe">记住我</el-checkbox>
+          </el-form-item>
+
+          <el-form-item>
+            <el-button
+              type="primary"
+              :loading="loading"
+              class="login-btn"
+              size="large"
+              @click="handleLogin"
+            >
+              <span v-if="!loading">登 录</span>
+            </el-button>
+          </el-form-item>
+        </el-form>
+
+        <div class="form-footer">
+          <span>© {{ currentYear }} 智慧教育系统</span>
+          <span class="footer-divider">|</span>
+          <span>技术支持团队</span>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
+import { User, Lock, Key } from '@element-plus/icons-vue'
+import smCrypto from 'sm-crypto'
 import request from '@/utils/request'
 
 const router = useRouter()
@@ -64,18 +105,27 @@ const userStore = useUserStore()
 const formRef = ref(null)
 const loading = ref(false)
 const captchaImage = ref('')
+const rememberMe = ref(localStorage.getItem('rememberAccount') === 'true')
+
+const currentYear = computed(() => new Date().getFullYear())
 
 const loginForm = reactive({
-  account: '',
+  account: localStorage.getItem('savedAccount') || '',
   password: '',
   captchaKey: '',
   captchaCode: ''
 })
 
 const rules = {
-  account: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
-  captchaCode: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
+  account: [
+    { required: true, message: '请输入账号', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' }
+  ],
+  captchaCode: [
+    { required: true, message: '请输入验证码', trigger: 'blur' }
+  ]
 }
 
 async function refreshCaptcha() {
@@ -89,16 +139,33 @@ async function refreshCaptcha() {
 }
 
 async function handleLogin() {
+  if (loading.value) return
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
+
   loading.value = true
   try {
-    await userStore.login(loginForm)
+    // SM3 加密密码后发送
+    const encryptedPassword = smCrypto.sm3(loginForm.password)
+    await userStore.login({ ...loginForm, password: encryptedPassword })
     await userStore.getUserInfo()
     ElMessage.success('登录成功')
-    router.push('/')
-  } catch {
+
+    if (rememberMe.value) {
+      localStorage.setItem('savedAccount', loginForm.account)
+      localStorage.setItem('rememberAccount', 'true')
+    } else {
+      localStorage.removeItem('savedAccount')
+      localStorage.removeItem('rememberAccount')
+    }
+
+    const redirect = router.currentRoute.value.query.redirect || '/'
+    router.push(redirect)
+  } catch (e) {
     refreshCaptcha()
+    loginForm.captchaCode = ''
+    const msg = e?.response?.data?.msg || e?.msg || '登录失败，请重试'
+    ElMessage.error(msg)
   } finally {
     loading.value = false
   }
@@ -111,116 +178,206 @@ onMounted(() => {
 
 <style scoped>
 .login-container {
-  position: relative;
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 100vh;
-  overflow: hidden;
-  background: linear-gradient(135deg, #0c3483 0%, #1a6b3c 50%, #0c3483 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
-}
-
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.login-bg {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-
-.gradient-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.4;
-  animation: orbFloat 20s ease-in-out infinite;
-}
-
-.orb-1 {
-  width: 500px;
-  height: 500px;
-  background: #00b894;
-  top: -10%;
-  left: -10%;
-  animation-delay: 0s;
-}
-
-.orb-2 {
-  width: 400px;
-  height: 400px;
-  background: #0984e3;
-  bottom: -15%;
-  right: -10%;
-  animation-delay: -7s;
-}
-
-.orb-3 {
-  width: 300px;
-  height: 300px;
-  background: #00cec9;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation-delay: -14s;
-}
-
-@keyframes orbFloat {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -30px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .login-card {
+  display: flex;
+  width: 800px;
+  min-height: 500px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.10);
+  overflow: hidden;
+}
+
+.login-brand {
+  flex: 0 0 360px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    url('../../static/login_left.png') center / cover no-repeat;
   position: relative;
-  width: 420px;
-  padding: 40px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  z-index: 1;
 }
 
-.login-header {
+.login-brand::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(56, 218, 166, 0.5);
+}
+
+.brand-content {
+  position: relative;
   text-align: center;
-  margin-bottom: 32px;
+  color: #fff;
+  padding: 32px;
 }
 
-.login-title {
+.brand-logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 48px;
+}
+
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  filter: brightness(0) invert(1);
+}
+
+.brand-name {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.brand-slogan {
+  text-align: center;
+}
+
+.slogan-text {
+  font-size: 16px;
+  opacity: 0.85;
   margin: 0;
-  font-size: 28px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #0c3483, #1a6b3c);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  line-height: 1.5;
+  letter-spacing: 2px;
 }
 
-.login-subtitle {
-  margin: 8px 0 0;
-  color: #909399;
+.brand-logo {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 16px;
+  filter: brightness(0) invert(1);
+}
+
+.brand-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.login-form-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px;
+}
+
+.form-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 28px 0;
+}
+
+.login-form :deep(.el-form-item) {
+  margin-bottom: 20px;
+}
+
+.login-form :deep(.el-input__wrapper) {
+  padding: 2px 12px;
+  border-radius: 6px;
+}
+
+.login-form :deep(.el-input__inner) {
+  height: 42px;
   font-size: 14px;
 }
 
-.login-footer {
-  text-align: center;
-  margin-top: 16px;
-  color: #c0c4cc;
-  font-size: 12px;
+.captcha-wrapper {
+  display: flex;
+  width: 100%;
+  gap: 12px;
+}
+
+.captcha-input {
+  flex: 1;
 }
 
 .captcha-img {
-  width: 100%;
-  height: 40px;
+  width: 120px;
+  height: 42px;
+  border-radius: 6px;
   cursor: pointer;
-  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid #dcdfe6;
+  flex-shrink: 0;
+}
+
+.login-btn {
+  width: 100%;
+  height: 44px;
+  font-size: 16px;
+  letter-spacing: 4px;
+  border-radius: 6px;
+  --el-button-bg-color: rgb(56, 218, 166);
+  --el-button-border-color: rgb(56, 218, 166);
+  --el-button-hover-bg-color: rgb(46, 198, 146);
+  --el-button-hover-border-color: rgb(46, 198, 146);
+  --el-button-active-bg-color: rgb(36, 178, 126);
+  --el-button-active-border-color: rgb(36, 178, 126);
+}
+
+.form-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: #b0b4c0;
+}
+
+.footer-divider {
+  margin: 0 8px;
+  opacity: 0.4;
+}
+
+@media (max-width: 768px) {
+  .login-card {
+    width: 90vw;
+    flex-direction: column;
+  }
+
+  .login-brand {
+    flex: none;
+    height: 160px;
+    padding: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    width: 100vw;
+    min-height: 100vh;
+    min-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .login-brand {
+    height: 140px;
+  }
+
+  .brand-logo {
+    width: 44px;
+    height: 44px;
+  }
+
+  .brand-title {
+    font-size: 18px;
+  }
+
+  .login-form-wrapper {
+    padding: 28px 24px;
+  }
+
+  .captcha-img {
+    width: 100px;
+  }
 }
 </style>

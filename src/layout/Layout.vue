@@ -1,7 +1,7 @@
 <template>
   <el-container class="layout-container">
     <el-aside :width="sidebarCollapsed ? '64px' : '220px'">
-      <Sidebar :collapsed="sidebarCollapsed" />
+      <Sidebar :collapsed="sidebarCollapsed" @toggle-collapse="toggleSidebar" />
     </el-aside>
     <el-container>
       <el-header height="60px">
