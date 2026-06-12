@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getAccessToken, setAccessToken, setRefreshToken, clearToken } from '@/utils/auth'
-import request from '@/utils/request'
+import { login as loginApi, getUserInfo as getUserInfoApi, logout as logoutApi } from '@/api/auth'
 
 export const useUserStore = defineStore('user', () => {
   const token = ref(getAccessToken() || '')
@@ -9,7 +9,7 @@ export const useUserStore = defineStore('user', () => {
   const menus = ref([])
 
   async function login(loginForm) {
-    const res = await request.post('/auth/login', loginForm)
+    const res = await loginApi(loginForm)
     const data = res.data
     setAccessToken(data.accessToken)
     setRefreshToken(data.refreshToken)
@@ -20,7 +20,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function getUserInfo() {
-    const res = await request.get('/auth/getUserInfo')
+    const res = await getUserInfoApi()
     userInfo.value = res.data.user
     menus.value = res.data.menus
     return res.data
@@ -28,7 +28,7 @@ export const useUserStore = defineStore('user', () => {
 
   async function logout() {
     try {
-      await request.post('/auth/logout')
+      await logoutApi()
     } finally {
       clearToken()
       token.value = ''

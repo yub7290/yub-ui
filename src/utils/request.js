@@ -12,12 +12,20 @@ let isRefreshing = false
 let pendingRequests = []
 
 function addPendingRequest(config) {
+  config._retry = true
   return new Promise((resolve) => {
     pendingRequests.push({ config, resolve })
   })
 }
 
 function processPendingRequests(newToken) {
+  if (!newToken) {
+    pendingRequests.forEach(({ config, resolve }) => {
+      resolve(Promise.reject(new Error('刷新失败')))
+    })
+    pendingRequests = []
+    return
+  }
   pendingRequests.forEach(({ config, resolve }) => {
     config.headers.Authorization = 'Bearer ' + newToken
     resolve(service(config))
@@ -64,9 +72,9 @@ service.interceptors.response.use(
   },
   async error => {
     const originalRequest = error.config
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      // 防止连续重试死循环（最多1次）
-      if (originalRequest._retryCount && originalRequest._retryCount >= 1) {
+    if (error.response?.status === 401) {
+      // 防止重试死循环（最多1次）
+      if (originalRequest._retry) {
         clearToken()
         router.push('/login')
         return Promise.reject(error)
@@ -75,7 +83,6 @@ service.interceptors.response.use(
         return addPendingRequest(originalRequest)
       }
       originalRequest._retry = true
-      originalRequest._retryCount = (originalRequest._retryCount || 0) + 1
       isRefreshing = true
       const refreshToken = getRefreshToken()
       if (!refreshToken) {
@@ -93,6 +100,7 @@ service.interceptors.response.use(
         return service(originalRequest)
       } catch (e) {
         clearToken()
+        processPendingRequests(null)
         router.push('/login')
         return Promise.reject(e)
       } finally {

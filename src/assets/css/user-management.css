@@ -1,0 +1,124 @@
+.user-management {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: calc(100vh - 140px);
+}
+
+/* ===== 搜索卡片 ===== */
+.search-card {
+  position: relative;
+  margin-bottom: 16px;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.card-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #38daa6;
+  border-radius: 0 2px 2px 0;
+}
+
+/* ===== 表格区域 ===== */
+.table-wrapper {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: 20px;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.table-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ===== 空数据 ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+  color: #94a3b8;
+}
+
+.empty-state p {
+  margin: 12px 0 0;
+  font-size: 14px;
+}
+
+/* ===== 分页栏 ===== */
+.pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  margin-top: 12px;
+}
+
+.pagination-left {
+  flex-shrink: 0;
+}
+
+.total-text {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.total-text b {
+  color: #38daa6;
+  font-weight: 700;
+}
+
+.pagination-right {
+  flex-shrink: 0;
+}
+
+:deep(.el-pagination) {
+  font-weight: 400;
+}
+
+:deep(.el-pagination.is-background .btn-prev),
+:deep(.el-pagination.is-background .btn-next),
+:deep(.el-pagination.is-background .el-pager li) {
+  border-radius: 6px;
+  min-width: 32px;
+  height: 32px;
+  line-height: 32px;
+}
+
+:deep(.el-pagination .el-select .el-input .el-input__wrapper) {
+  border-radius: 6px;
+}
+
+:deep(.el-pagination .el-input__inner) {
+  border-radius: 6px;
+}
