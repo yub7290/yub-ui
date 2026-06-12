@@ -141,9 +141,8 @@ async function fetchData() {
   loading.value = true
   try {
     const res = await getUserPage({
-      ...queryParams,
-      pageNum: pageNum.value,
-      pageSize: pageSize.value
+      queryParam: { ...queryParams },
+      pageParam: { pageNum: pageNum.value, pageSize: pageSize.value }
     })
     const data = res.data
     tableData.value = (data.records || []).map(row => ({ ...row, _statusLoading: false }))

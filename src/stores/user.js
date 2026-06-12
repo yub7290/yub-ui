@@ -14,8 +14,8 @@ export const useUserStore = defineStore('user', () => {
     setAccessToken(data.accessToken)
     setRefreshToken(data.refreshToken)
     token.value = data.accessToken
-    userInfo.value = data.userInfo
-    menus.value = data.menus
+    // 注意：登录响应只返回 accessToken/refreshToken
+    // 用户信息需通过 getUserInfo() 单独获取
     return data
   }
 

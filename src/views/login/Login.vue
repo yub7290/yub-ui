@@ -164,8 +164,7 @@ async function handleLogin() {
   } catch (e) {
     refreshCaptcha()
     loginForm.captchaCode = ''
-    const msg = e?.response?.data?.msg || e?.msg || '登录失败，请重试'
-    ElMessage.error(msg)
+    // 错误已由 request.js 拦截器统一展示
   } finally {
     loading.value = false
   }
@@ -227,8 +226,8 @@ onMounted(() => {
 }
 
 .brand-logo {
-  width: 36px;
-  height: 36px;
+  width: 56px;
+  height: 56px;
   filter: brightness(0) invert(1);
 }
 
@@ -247,19 +246,6 @@ onMounted(() => {
   margin: 0;
   line-height: 1.5;
   letter-spacing: 2px;
-}
-
-.brand-logo {
-  width: 56px;
-  height: 56px;
-  margin-bottom: 16px;
-  filter: brightness(0) invert(1);
-}
-
-.brand-title {
-  font-size: 22px;
-  font-weight: 600;
-  margin: 0;
 }
 
 .login-form-wrapper {

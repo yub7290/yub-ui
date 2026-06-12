@@ -22,7 +22,7 @@
       <el-form-item label="邮箱" prop="email">
         <el-input v-model="formData.email" placeholder="请输入邮箱" maxlength="100" />
       </el-form-item>
-      <el-form-item label="角色">
+      <el-form-item label="角色" prop="roleIds">
         <el-select v-model="formData.roleIds" multiple placeholder="请选择角色" style="width: 100%">
           <el-option
             v-for="role in roleOptions"
@@ -80,6 +80,24 @@ const formData = reactive({
   roleIds: []
 })
 
+/** 密码强度校验：大写、小写、数字、特殊字符至少满足三种 */
+function validatePasswordStrength(rule, value, callback) {
+  if (!value) {
+    callback(new Error('请输入密码'))
+    return
+  }
+  let count = 0
+  if (/[a-z]/.test(value)) count++
+  if (/[A-Z]/.test(value)) count++
+  if (/\d/.test(value)) count++
+  if (/[^a-zA-Z0-9]/.test(value)) count++
+  if (count >= 3) {
+    callback()
+  } else {
+    callback(new Error('密码必须包含大写字母、小写字母、数字、特殊字符中至少三种'))
+  }
+}
+
 const rules = {
   account: [
     { required: true, message: '请输入账号', trigger: 'blur' },
@@ -88,13 +106,21 @@ const rules = {
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 100, message: '密码长度6-100个字符', trigger: 'blur' }
+    { min: 6, max: 100, message: '密码长度6-100个字符', trigger: 'blur' },
+    { validator: validatePasswordStrength, trigger: 'blur' }
+  ],
+  nickName: [
+    { required: true, message: '请输入昵称', trigger: 'blur' }
   ],
   phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
   ],
   email: [
     { type: 'email', message: '邮箱格式不正确', trigger: 'blur' }
+  ],
+  roleIds: [
+    { required: true, message: '请选择角色', trigger: 'change' }
   ]
 }
 

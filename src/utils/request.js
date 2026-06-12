@@ -25,6 +25,19 @@ function processPendingRequests(newToken) {
   pendingRequests = []
 }
 
+/**
+ * 提取后端错误消息（优先使用后端返回的 message）
+ */
+function getErrorMessage(error) {
+  if (error.response?.data?.message) {
+    return error.response.data.message
+  }
+  if (error.message) {
+    return error.message
+  }
+  return '网络错误'
+}
+
 service.interceptors.request.use(
   config => {
     const token = getAccessToken()
@@ -86,7 +99,8 @@ service.interceptors.response.use(
         isRefreshing = false
       }
     }
-    ElMessage.error(error.message || '网络错误')
+    // 优先显示后端返回的错误消息，否则使用 Axios 默认消息
+    ElMessage.error(getErrorMessage(error))
     return Promise.reject(error)
   }
 )

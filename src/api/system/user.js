@@ -3,11 +3,11 @@ import request from '@/utils/request'
 /**
  * 分页查询用户列表
  *
- * @param {object} params 查询条件+分页参数
+ * @param {object} data 查询条件+分页参数 { queryParam: {...}, pageParam: { pageNum, pageSize } }
  * @returns {Promise}
  */
-export function getUserPage(params) {
-  return request.get('/system/user/page', { params })
+export function getUserPage(data) {
+  return request.post('/system/user/page', data)
 }
 
 /**
