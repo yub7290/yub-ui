@@ -1,14 +1,11 @@
 <template>
-  <div class="user-management">
-    <!-- 搜索区域 -->
+  <div class="role-management">
+    <!-- 搜索区 -->
     <el-card class="search-card" shadow="never">
       <div class="card-accent"></div>
       <el-form :model="queryParams" inline>
-        <el-form-item label="账号">
-          <el-input v-model="queryParams.account" placeholder="请输入账号" clearable style="width: 160px" />
-        </el-form-item>
-        <el-form-item label="昵称">
-          <el-input v-model="queryParams.nickName" placeholder="请输入昵称" clearable style="width: 160px" />
+        <el-form-item label="角色名称">
+          <el-input v-model="queryParams.name" placeholder="角色名称" clearable style="width: 180px" />
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="queryParams.status" placeholder="全部" clearable style="width: 120px">
@@ -23,12 +20,10 @@
       </el-form>
     </el-card>
 
-    <!-- 数据表格区域 -->
+    <!-- 表格区域 -->
     <div class="table-wrapper">
       <div class="table-header">
-        <div class="table-title">
-          用户列表
-        </div>
+        <div class="table-title">角色列表</div>
         <div class="table-actions">
           <el-button type="primary" @click="handleAdd">
             <el-icon><Plus /></el-icon>新增
@@ -45,15 +40,9 @@
         :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: 600 }"
       >
         <el-table-column type="index" label="#" width="50" align="center" />
-        <el-table-column prop="account" label="账号" min-width="120" />
-        <el-table-column prop="nickName" label="昵称" min-width="120" />
-        <el-table-column prop="phone" label="手机号" min-width="130" />
-        <el-table-column prop="email" label="邮箱" min-width="180" show-overflow-tooltip />
-        <el-table-column label="角色" min-width="160" show-overflow-tooltip>
-          <template #default="{ row }">
-            {{ row.roleNames ? row.roleNames.join(', ') : '-' }}
-          </template>
-        </el-table-column>
+        <el-table-column prop="name" label="角色名称" min-width="140" />
+        <el-table-column prop="code" label="角色编码" min-width="140" />
+        <el-table-column prop="sort" label="排序" width="80" align="center" />
         <el-table-column prop="status" label="状态" width="80" align="center">
           <template #default="{ row }">
             <el-switch
@@ -71,11 +60,9 @@
             {{ formatDateTime(row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220" align="center" fixed="right">
+        <el-table-column label="操作" width="180" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleDetail(row.id)">详情</el-button>
             <el-button link type="primary" size="small" @click="handleEdit(row.id)">编辑</el-button>
-            <el-button link type="primary" size="small" @click="handleResetPwd(row.id)">重置密码</el-button>
             <el-button link type="danger" size="small" @click="handleDelete(row.id)">删除</el-button>
           </template>
         </el-table-column>
@@ -90,7 +77,7 @@
       </el-table>
     </div>
 
-    <!-- 分页栏 - 固定在底部 -->
+    <!-- 分页栏 -->
     <div class="pagination-bar">
       <div class="pagination-left">
         <span class="total-text">共 <b>{{ total }}</b> 条数据</span>
@@ -110,19 +97,26 @@
       </div>
     </div>
 
-    <UserFormDialog v-model="dialogVisible" :user-id="editUserId" @success="fetchData" />
-    <UserDetailDrawer v-model="drawerVisible" :user-id="detailUserId" />
+    <!-- 新增/编辑对话框 -->
+    <RoleFormDialog
+      v-model="dialogVisible"
+      :role-id="editRoleId"
+      @success="fetchData"
+    />
   </div>
 </template>
 
 <script setup>
 import dayjs from 'dayjs'
 import { Plus, FolderOpened } from '@element-plus/icons-vue'
-import UserFormDialog from './UserFormDialog.vue'
-import UserDetailDrawer from './UserDetailDrawer.vue'
-import { useUserManagement } from '@/composables/useUserManagement'
+import { useRoleManagement } from '@/composables/useRoleManagement'
+import RoleFormDialog from './RoleFormDialog.vue'
 
-const { loading, tableData, total, pageNum, pageSize, queryParams, dialogVisible, editUserId, drawerVisible, detailUserId, fetchData, handleQuery, handleReset, handleAdd, handleEdit, handleDetail, handleDelete, handleResetPwd, handleStatusChange } = useUserManagement()
+const {
+  loading, tableData, total, pageNum, pageSize, queryParams,
+  dialogVisible, editRoleId,
+  fetchData, handleQuery, handleReset, handleAdd, handleEdit, handleDelete, handleStatusChange
+} = useRoleManagement()
 
 /** 格式化日期时间，去掉 T */
 function formatDateTime(date) {
@@ -132,4 +126,11 @@ function formatDateTime(date) {
 
 <style scoped>
 @import '@/assets/css/user-management.css';
+.role-management {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: calc(100vh - 140px);
+  padding: 0;
+}
 </style>

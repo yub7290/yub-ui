@@ -1,6 +1,7 @@
 import { ref, reactive, watch } from 'vue'
 import smCrypto from 'sm-crypto'
 import { getRoleOptions } from '@/api/system/role'
+import { getDeptTree } from '@/api/system/dept'
 import { createUser, updateUser, getUserDetail } from '@/api/system/user'
 import { ElMessage } from 'element-plus'
 
@@ -17,6 +18,7 @@ export function useUserFormDialog(props, emit) {
   const submitting = ref(false)
   const formRef = ref(null)
   const roleOptions = ref([])
+  const deptOptions = ref([])
 
   const formData = reactive({
     account: '',
@@ -24,6 +26,7 @@ export function useUserFormDialog(props, emit) {
     nickName: '',
     phone: '',
     email: '',
+    deptId: null,
     status: 1,
     roleIds: []
   })
@@ -84,7 +87,10 @@ export function useUserFormDialog(props, emit) {
   })
 
   async function handleOpen() {
-    await loadRoleOptions()
+    await Promise.all([
+      loadRoleOptions(),
+      loadDeptTree()
+    ])
     if (props.userId) {
       isEdit.value = true
       const res = await getUserDetail(props.userId)
@@ -94,10 +100,22 @@ export function useUserFormDialog(props, emit) {
       formData.phone = data.phone || ''
       formData.email = data.email || ''
       formData.status = data.status
+      formData.deptId = data.deptId ?? null
       formData.roleIds = data.roleIds || []
       formData.password = ''
     } else {
       isEdit.value = false
+      // 新建模式：清理表单，避免残留旧数据或浏览器自动填充
+      resetForm()
+    }
+  }
+
+  async function loadDeptTree() {
+    try {
+      const res = await getDeptTree()
+      deptOptions.value = res.data || []
+    } catch {
+      deptOptions.value = []
     }
   }
 
@@ -116,6 +134,7 @@ export function useUserFormDialog(props, emit) {
     formData.nickName = ''
     formData.phone = ''
     formData.email = ''
+    formData.deptId = null
     formData.status = 1
     formData.roleIds = []
     isEdit.value = false
@@ -139,6 +158,7 @@ export function useUserFormDialog(props, emit) {
           nickName: formData.nickName,
           phone: formData.phone,
           email: formData.email,
+          deptId: formData.deptId,
           status: formData.status,
           roleIds: formData.roleIds
         })
@@ -151,6 +171,7 @@ export function useUserFormDialog(props, emit) {
           nickName: formData.nickName,
           phone: formData.phone,
           email: formData.email,
+          deptId: formData.deptId,
           status: formData.status,
           roleIds: formData.roleIds
         })
@@ -171,6 +192,7 @@ export function useUserFormDialog(props, emit) {
     submitting,
     formRef,
     roleOptions,
+    deptOptions,
     formData,
     rules,
     handleOpen,

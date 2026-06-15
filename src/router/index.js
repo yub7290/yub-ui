@@ -24,6 +24,24 @@ const routes = [
         name: 'User',
         component: () => import('@/views/system/user/index.vue'),
         meta: { title: '用户管理' }
+      },
+      {
+        path: 'system/role',
+        name: 'Role',
+        component: () => import('@/views/system/role/index.vue'),
+        meta: { title: '角色管理', icon: 'UserFilled' }
+      },
+      {
+        path: 'system/menu',
+        name: 'Menu',
+        component: () => import('@/views/system/menu/index.vue'),
+        meta: { title: '菜单管理', icon: 'Menu' }
+      },
+      {
+        path: 'system/dept',
+        name: 'Dept',
+        component: () => import('@/views/system/dept/index.vue'),
+        meta: { title: '部门管理', icon: 'Organization' }
       }
     ]
   }

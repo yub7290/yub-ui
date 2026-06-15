@@ -12,11 +12,11 @@
             {{ detail.status === 1 ? '启用' : '停用' }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="最后登录时间">{{ detail.lastLoginTime || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="最后登录时间">{{ formatDateTime(detail.lastLoginTime) }}</el-descriptions-item>
         <el-descriptions-item label="最后登录IP">{{ detail.lastLoginIp || '-' }}</el-descriptions-item>
         <el-descriptions-item label="登录次数">{{ detail.loginCount ?? 0 }}</el-descriptions-item>
-        <el-descriptions-item label="创建时间">{{ detail.createTime }}</el-descriptions-item>
-        <el-descriptions-item label="更新时间">{{ detail.updateTime || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{ formatDateTime(detail.createTime) }}</el-descriptions-item>
+        <el-descriptions-item label="更新时间">{{ formatDateTime(detail.updateTime) }}</el-descriptions-item>
       </el-descriptions>
     </template>
     <div v-else class="loading-wrapper">
@@ -26,6 +26,7 @@
 </template>
 
 <script setup>
+import dayjs from 'dayjs'
 import { ref, watch } from 'vue'
 import { getUserDetail } from '@/api/system/user'
 
@@ -60,6 +61,11 @@ async function handleOpen() {
   } catch {
     // 错误已由 request.js 拦截器处理
   }
+}
+
+/** 格式化日期时间，去掉 T */
+function formatDateTime(date) {
+  return date ? dayjs(date).format('YYYY-MM-DD HH:mm:ss') : '-'
 }
 </script>
 

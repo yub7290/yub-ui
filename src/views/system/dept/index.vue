@@ -1,14 +1,11 @@
 <template>
-  <div class="user-management">
-    <!-- 搜索区域 -->
+  <div class="dept-management">
+    <!-- 搜索区 -->
     <el-card class="search-card" shadow="never">
       <div class="card-accent"></div>
       <el-form :model="queryParams" inline>
-        <el-form-item label="账号">
-          <el-input v-model="queryParams.account" placeholder="请输入账号" clearable style="width: 160px" />
-        </el-form-item>
-        <el-form-item label="昵称">
-          <el-input v-model="queryParams.nickName" placeholder="请输入昵称" clearable style="width: 160px" />
+        <el-form-item label="部门名称">
+          <el-input v-model="queryParams.deptName" placeholder="部门名称" clearable style="width: 180px" @keyup.enter="handleQuery" />
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="queryParams.status" placeholder="全部" clearable style="width: 120px">
@@ -23,37 +20,33 @@
       </el-form>
     </el-card>
 
-    <!-- 数据表格区域 -->
+    <!-- 表格区域 -->
     <div class="table-wrapper">
       <div class="table-header">
-        <div class="table-title">
-          用户列表
-        </div>
+        <div class="table-title">部门列表</div>
         <div class="table-actions">
-          <el-button type="primary" @click="handleAdd">
+          <el-button type="primary" @click="handleAdd(0)">
             <el-icon><Plus /></el-icon>新增
           </el-button>
         </div>
       </div>
 
       <el-table
+        :key="tableKey"
         :data="tableData"
         v-loading="loading"
         border
         stripe
+        row-key="id"
+        :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
         style="width: 100%"
         :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: 600 }"
+        default-expand-all
       >
         <el-table-column type="index" label="#" width="50" align="center" />
-        <el-table-column prop="account" label="账号" min-width="120" />
-        <el-table-column prop="nickName" label="昵称" min-width="120" />
-        <el-table-column prop="phone" label="手机号" min-width="130" />
-        <el-table-column prop="email" label="邮箱" min-width="180" show-overflow-tooltip />
-        <el-table-column label="角色" min-width="160" show-overflow-tooltip>
-          <template #default="{ row }">
-            {{ row.roleNames ? row.roleNames.join(', ') : '-' }}
-          </template>
-        </el-table-column>
+        <el-table-column prop="deptName" label="部门名称" min-width="200" />
+        <el-table-column prop="deptCode" label="部门编码" min-width="140" />
+        <el-table-column prop="sort" label="排序" width="80" align="center" />
         <el-table-column prop="status" label="状态" width="80" align="center">
           <template #default="{ row }">
             <el-switch
@@ -71,11 +64,10 @@
             {{ formatDateTime(row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="220" align="center" fixed="right">
+        <el-table-column label="操作" width="240" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleDetail(row.id)">详情</el-button>
+            <el-button link type="primary" size="small" @click="handleAdd(row.id)">新增子部门</el-button>
             <el-button link type="primary" size="small" @click="handleEdit(row.id)">编辑</el-button>
-            <el-button link type="primary" size="small" @click="handleResetPwd(row.id)">重置密码</el-button>
             <el-button link type="danger" size="small" @click="handleDelete(row.id)">删除</el-button>
           </template>
         </el-table-column>
@@ -90,39 +82,28 @@
       </el-table>
     </div>
 
-    <!-- 分页栏 - 固定在底部 -->
-    <div class="pagination-bar">
-      <div class="pagination-left">
-        <span class="total-text">共 <b>{{ total }}</b> 条数据</span>
-      </div>
-      <div class="pagination-right">
-        <el-pagination
-          v-model:current-page="pageNum"
-          v-model:page-size="pageSize"
-          :page-sizes="[10, 20, 50]"
-          :total="total"
-          :pager-count="5"
-          layout="sizes, prev, pager, next, jumper"
-          background
-          @size-change="fetchData"
-          @current-change="fetchData"
-        />
-      </div>
-    </div>
-
-    <UserFormDialog v-model="dialogVisible" :user-id="editUserId" @success="fetchData" />
-    <UserDetailDrawer v-model="drawerVisible" :user-id="detailUserId" />
+    <!-- 新增/编辑对话框 -->
+    <DeptFormDialog
+      :key="dialogKey"
+      v-model="dialogVisible"
+      :edit-dept-id="editDeptId"
+      :dept-tree="tableData"
+      @success="fetchData"
+    />
   </div>
 </template>
 
 <script setup>
 import dayjs from 'dayjs'
 import { Plus, FolderOpened } from '@element-plus/icons-vue'
-import UserFormDialog from './UserFormDialog.vue'
-import UserDetailDrawer from './UserDetailDrawer.vue'
-import { useUserManagement } from '@/composables/useUserManagement'
+import { useDeptManagement } from '@/composables/useDeptManagement'
+import DeptFormDialog from './DeptFormDialog.vue'
 
-const { loading, tableData, total, pageNum, pageSize, queryParams, dialogVisible, editUserId, drawerVisible, detailUserId, fetchData, handleQuery, handleReset, handleAdd, handleEdit, handleDetail, handleDelete, handleResetPwd, handleStatusChange } = useUserManagement()
+const {
+  loading, tableData, tableKey, queryParams,
+  dialogVisible, editDeptId, dialogKey,
+  fetchData, handleQuery, handleReset, handleAdd, handleEdit, handleDelete, handleStatusChange
+} = useDeptManagement()
 
 /** 格式化日期时间，去掉 T */
 function formatDateTime(date) {
@@ -132,4 +113,11 @@ function formatDateTime(date) {
 
 <style scoped>
 @import '@/assets/css/user-management.css';
+.dept-management {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: calc(100vh - 140px);
+  padding: 0;
+}
 </style>
