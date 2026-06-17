@@ -20,28 +20,11 @@
       router
       class="sidebar-menu"
     >
-      <template v-for="menu in menus" :key="menu.id">
-        <el-sub-menu v-if="menu.children && menu.children.length" :index="menu.path || String(menu.id)">
-          <template #title>
-            <el-icon class="menu-icon"><component :is="menu.icon" /></el-icon>
-            <span>{{ menu.name }}</span>
-          </template>
-          <el-menu-item
-            v-for="child in menu.children"
-            :key="child.id"
-            :index="child.path"
-          >
-            <el-icon class="menu-icon"><component :is="child.icon" /></el-icon>
-            <span>{{ child.name }}</span>
-          </el-menu-item>
-        </el-sub-menu>
-        <el-menu-item v-else :index="menu.path || String(menu.id)">
-          <el-icon class="menu-icon"><component :is="menu.icon" /></el-icon>
-          <template #title>
-            <span>{{ menu.name }}</span>
-          </template>
-        </el-menu-item>
-      </template>
+      <SubMenuItem
+        v-for="menu in menus"
+        :key="menu.id"
+        :menu="menu"
+      />
     </el-menu>
 
     <!-- 底部折叠按钮 -->
@@ -59,6 +42,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { Fold, Expand } from '@element-plus/icons-vue'
+import SubMenuItem from './SubMenuItem.vue'
 
 defineProps({
   collapsed: Boolean

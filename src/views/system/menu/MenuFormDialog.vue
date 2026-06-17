@@ -120,85 +120,85 @@ const {
   handleOpen, handleSubmit
 } = useMenuFormDialog(props, emit)
 
-// Element Plus 完整图标列表
+// Element Plus 图标列表（已验证全部为 @element-plus/icons-vue 有效图标）
 const iconOptions = [
   // ===== 导航 / 布局 =====
-  'Menu', 'MenuFold', 'MenuUnfold', 'Fold', 'Expand', 'ArrowDown', 'ArrowUp',
-  'ArrowLeft', 'ArrowRight', 'ArrowLeftBold', 'ArrowRightBold',
+  'Menu', 'Fold', 'Expand', 'ArrowDown', 'ArrowUp',
+  'ArrowLeft', 'ArrowRight', 'ArrowDownBold', 'ArrowUpBold',
+  'ArrowLeftBold', 'ArrowRightBold',
   'DArrowLeft', 'DArrowRight', 'Back', 'Right', 'Bottom', 'Top',
   'HomeFilled', 'Grid', 'List', 'Rank', 'Operation',
 
   // ===== 系统 / 设置 =====
   'Setting', 'Tools', 'Switch', 'SwitchFilled', 'Bell', 'BellFilled',
   'Refresh', 'RefreshRight', 'RefreshLeft', 'FullScreen', 'ScaleToOriginal',
-  'Config', 'SetUp', 'CircleCheck', 'CircleClose', 'CirclePlus',
+  'SetUp', 'CircleCheck', 'CircleClose', 'CirclePlus',
+  'CircleCheckFilled', 'CircleCloseFilled', 'CirclePlusFilled',
   'Warning', 'WarningFilled', 'InfoFilled', 'SuccessFilled', 'QuestionFilled',
 
   // ===== 用户 / 角色 =====
   'User', 'UserFilled', 'Avatar', 'Female', 'Male',
-  'UserAdd', 'DeleteUser', 'UserRemove', 'Key', 'Unlock', 'Lock',
+  'Key', 'Unlock', 'Lock',
 
   // ===== 部门 / 组织 =====
-  'OfficeBuilding', 'School', 'Home', 'House',
-  'Building', 'Platform', 'Connection', 'Share',
+  'OfficeBuilding', 'School', 'House',
+  'Platform', 'Connection', 'Share',
 
   // ===== 文档 / 文件 =====
   'Document', 'DocumentAdd', 'DocumentRemove', 'DocumentChecked', 'DocumentCopy',
+  'DocumentDelete',
   'Folder', 'FolderAdd', 'FolderRemove', 'FolderChecked', 'FolderDelete',
-  'Files', 'CopyDocument', 'DeleteDocument', 'Reading', 'Notebook',
+  'Files', 'CopyDocument', 'Reading', 'Notebook',
   'Tickets', 'Memo', 'Collection', 'CollectionTag',
 
   // ===== 数据 / 统计 =====
   'DataAnalysis', 'DataBoard', 'DataLine', 'PieChart', 'Histogram',
-  'TrendCharts', 'Odometer', 'Monitor', 'Cpu', 'Disk',
-  'SalesOrder', 'Sell', 'ShoppingCart', 'ShoppingCartFull',
+  'TrendCharts', 'Odometer', 'Monitor', 'Cpu',
+  'Sell', 'ShoppingCart', 'ShoppingCartFull',
   'Wallet', 'Coin', 'Money', 'Goods', 'Box',
 
   // ===== 通信 / 消息 =====
-  'Message', 'MessageSolid', 'ChatDotSquare', 'ChatLineSquare',
+  'Message', 'ChatDotSquare', 'ChatLineSquare',
   'ChatDotRound', 'ChatLineRound', 'ChatSquare', 'ChatRound',
-  'Postcard', 'Bell', 'BellFilled', 'Notification', 'AlarmClock',
-  'Email', 'Mobile', 'Phone', 'Telephone', 'Iphone',
+  'Postcard', 'Notification', 'AlarmClock',
+  'Cellphone', 'Phone', 'Iphone',
 
   // ===== 编辑 / 操作 =====
-  'Edit', 'EditPen', 'EditPenFilled',
+  'Edit', 'EditPen',
   'Plus', 'Minus', 'Close', 'Check',
-  'CirclePlus', 'CirclePlusFilled', 'CircleCloseFilled',
   'Select', 'Remove', 'Delete', 'DeleteFilled',
-  'Upload', 'UploadFilled', 'Download', 'DownloadFilled',
+  'Upload', 'UploadFilled', 'Download',
   'View', 'Hide', 'Search', 'ZoomIn', 'ZoomOut',
-  'Sort', 'SortUp', 'SortDown', 'Filter',
+  'Sort', 'SortDown', 'SortUp', 'Filter',
 
   // ===== 文件类型 =====
   'Picture', 'PictureFilled', 'PictureRounded',
   'VideoCamera', 'VideoCameraFilled',
-  'Microphone', 'Headset', 'Film', 'Music', 'Mute',
+  'Microphone', 'Headset', 'Film', 'Mute',
   'Printer', 'ForkSpoon', 'KnifeFork', 'Food', 'Coffee',
 
   // ===== 时间 / 日历 =====
   'Clock', 'Timer', 'AlarmClock', 'Watch',
-  'Calendar', 'Date', 'TimeSelect',
+  'Calendar',
 
   // ===== 方向 / 位置 =====
   'Location', 'LocationFilled', 'LocationInformation',
-  'Compass', 'Direction', 'TurnOff', 'Place',
+  'Compass', 'TurnOff', 'Place',
   'MapLocation', 'Position',
 
   // ===== 状态 / 标志 =====
   'Star', 'StarFilled', 'Flag', 'SemiSelect',
-  'CircleCheck', 'CircleCheckFilled', 'CircleClose', 'CircleCloseFilled',
-  'WarningFilled', 'Warning', 'InfoFilled', 'SuccessFilled', 'QuestionFilled',
-  'Help', 'Info', 'Loading', 'MuteNotification',
+  'Help', 'HelpFilled', 'Info', 'Loading', 'MuteNotification',
 
   // ===== 其他 =====
-  'Link', 'Paperclip', 'Attract', 'Magnet',
+  'Link', 'Paperclip', 'Magnet',
   'Sunny', 'Sunrise', 'Sunset', 'Moon', 'Cloudy',
   'ColdDrink', 'HotWater', 'IceCream', 'IceDrink',
-  'Umbrella', 'Brush', 'Scissors', 'MagicStick',
+  'Umbrella', 'Brush', 'MagicStick',
   'Basketball', 'Football', 'Baseball', 'Trophy',
-  'Medal', 'MedalFirst', 'MedalSecond', 'MedalThird',
-  'Aim', 'Discord', 'Grape', 'Cherry', 'Apple', 'Pear',
-  'Orange', 'Watermelon', 'Lollipop', 'Cake', 'IceCreamSquare'
+  'GoldMedal', 'Medal',
+  'Aim', 'Grape', 'Cherry', 'Apple', 'Pear',
+  'Orange', 'Watermelon', 'Lollipop', 'IceCreamSquare'
 ]
 </script>
 

@@ -1,6 +1,6 @@
 import { ref, reactive, nextTick, watch } from 'vue'
 import { createRole, updateRole, getRoleDetail } from '@/api/system/role'
-import { useUserStore } from '@/stores/user'
+import { getMenuTree } from '@/api/system/menu'
 import { ElMessage } from 'element-plus'
 
 /**
@@ -81,8 +81,8 @@ export function useRoleFormDialog(props, emit) {
   async function loadMenuTree() {
     menuLoading.value = true
     try {
-      const userStore = useUserStore()
-      menuTreeData.value = userStore.menus || []
+      const res = await getMenuTree()
+      menuTreeData.value = res.data || []
     } catch {
       menuTreeData.value = []
     } finally {

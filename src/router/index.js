@@ -42,6 +42,99 @@ const routes = [
         name: 'Dept',
         component: () => import('@/views/system/dept/index.vue'),
         meta: { title: '部门管理', icon: 'Organization' }
+      },
+      {
+        path: 'system/dict',
+        name: 'DictType',
+        component: () => import('@/views/system/dict/index.vue'),
+        meta: { title: '数据字典', icon: 'Notebook' }
+      },
+      // 教育模块 - 学习内容目录（重定向到课程）
+      {
+        path: 'edu/content',
+        name: 'EduContent',
+        redirect: '/edu/course',
+        meta: { title: '学习内容', icon: 'Notebook' }
+      },
+      // 教育模块 - 专业管理
+      {
+        path: 'edu/major',
+        name: 'EduMajor',
+        component: () => import('@/views/edu/major/index.vue'),
+        meta: { title: '专业管理', icon: 'Collection' }
+      },
+      {
+        path: 'edu/course',
+        name: 'EduCourse',
+        component: () => import('@/views/edu/course/index.vue'),
+        meta: { title: '课程管理', icon: 'List' }
+      },
+      {
+        path: 'edu/question',
+        name: 'EduQuestion',
+        component: () => import('@/views/edu/question/index.vue'),
+        meta: { title: '试题库', icon: 'Document' }
+      },
+      {
+        path: 'edu/knowledge',
+        name: 'EduKnowledge',
+        component: () => import('@/views/edu/knowledge/index.vue'),
+        meta: { title: '知识点', icon: 'Reading' }
+      },
+      // 教育模块 - 教师管理
+      {
+        path: 'edu/teacher',
+        name: 'EduTeacher',
+        component: () => import('@/views/edu/teacher/index.vue'),
+        meta: { title: '教师信息', icon: 'User' }
+      },
+      {
+        path: 'edu/teacher-title',
+        name: 'EduTeacherTitle',
+        component: () => import('@/views/edu/teacher-title/index.vue'),
+        meta: { title: '教师职称', icon: 'Collection' }
+      },
+      {
+        path: 'edu/student',
+        name: 'EduStudent',
+        component: () => import('@/views/edu/student/index.vue'),
+        meta: { title: '学员信息', icon: 'UserFilled' }
+      },
+      {
+        path: 'edu/certificate',
+        name: 'EduCertificate',
+        component: () => import('@/views/placeholder/index.vue'),
+        meta: { title: '学习证明', icon: 'Trophy' }
+      },
+      {
+        path: 'edu/weight',
+        name: 'EduWeight',
+        component: () => import('@/views/placeholder/index.vue'),
+        meta: { title: '学习权重', icon: 'ScaleToOriginal' }
+      },
+      {
+        path: 'edu/recycle/major',
+        name: 'EduRecycleMajor',
+        component: () => import('@/views/edu/recycle/major.vue'),
+        meta: { title: '专业回收', icon: 'Delete' }
+      },
+      {
+        path: 'edu/recycle/course',
+        name: 'EduRecycleCourse',
+        component: () => import('@/views/edu/recycle/course.vue'),
+        meta: { title: '课程回收', icon: 'Delete' }
+      },
+      {
+        path: 'edu/recycle/question',
+        name: 'EduRecycleQuestion',
+        component: () => import('@/views/edu/recycle/question.vue'),
+        meta: { title: '试题回收', icon: 'Delete' }
+      },
+      {
+        path: 'edu/recycle/exam',
+        name: 'EduRecycleExam',
+        component: () => import('@/views/edu/recycle/exam.vue'),
+        meta: { title: '试卷回收', icon: 'Delete' }
       }
     ]
   }

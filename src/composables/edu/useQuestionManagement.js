@@ -1,13 +1,13 @@
 import { ref, reactive, onMounted } from 'vue'
-import { getRolePage, deleteRole, changeRoleStatus } from '@/api/system/role'
+import { getQuestionPage, deleteQuestion, changeQuestionStatus } from '@/api/edu/question'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 /**
- * 角色管理页逻辑
+ * 试题管理页逻辑
  *
- * @returns {object} 角色管理页响应式状态和方法
+ * @returns {object} 试题管理页响应式状态和方法
  */
-export function useRoleManagement() {
+export function useQuestionManagement() {
   const loading = ref(false)
   const tableData = ref([])
   const total = ref(0)
@@ -15,12 +15,14 @@ export function useRoleManagement() {
   const pageSize = ref(10)
 
   const queryParams = reactive({
-    name: '',
+    questionType: null,
+    difficulty: null,
+    courseId: null,
     status: null
   })
 
   const dialogVisible = ref(false)
-  const editRoleId = ref(null)
+  const editQuestionId = ref(null)
 
   onMounted(() => {
     fetchData()
@@ -29,7 +31,7 @@ export function useRoleManagement() {
   async function fetchData() {
     loading.value = true
     try {
-      const res = await getRolePage({
+      const res = await getQuestionPage({
         queryParam: { ...queryParams },
         pageParam: { pageNum: pageNum.value, pageSize: pageSize.value }
       })
@@ -50,30 +52,32 @@ export function useRoleManagement() {
   }
 
   function handleReset() {
-    queryParams.name = ''
+    queryParams.questionType = null
+    queryParams.difficulty = null
+    queryParams.courseId = null
     queryParams.status = null
     pageNum.value = 1
     fetchData()
   }
 
   function handleAdd() {
-    editRoleId.value = null
+    editQuestionId.value = null
     dialogVisible.value = true
   }
 
   function handleEdit(id) {
-    editRoleId.value = id
+    editQuestionId.value = id
     dialogVisible.value = true
   }
 
   async function handleDelete(id) {
     try {
-      await ElMessageBox.confirm('确定要删除该角色吗？', '删除确认', {
+      await ElMessageBox.confirm('确定要删除该试题吗？', '删除确认', {
         type: 'warning',
         confirmButtonText: '确定',
         cancelButtonText: '取消'
       })
-      await deleteRole(id)
+      await deleteQuestion(id)
       ElMessage.success('删除成功')
       fetchData()
     } catch {
@@ -85,15 +89,17 @@ export function useRoleManagement() {
     const status = checked ? 1 : 0
     row._statusLoading = true
     try {
-      await changeRoleStatus(row.id, status)
-      ElMessage.success(checked ? '角色已启用' : '角色已停用')
-      fetchData()
+      await changeQuestionStatus(row.id, status)
+      row.status = status
+      ElMessage.success(checked ? '试题已启用' : '试题已停用')
     } catch {
       // 错误已处理
     } finally {
       row._statusLoading = false
     }
   }
+
+  const questionTypeMap = { 0: '单选', 1: '多选', 2: '判断', 3: '简答', 4: '填空' }
 
   return {
     loading,
@@ -103,7 +109,8 @@ export function useRoleManagement() {
     pageSize,
     queryParams,
     dialogVisible,
-    editRoleId,
+    editQuestionId,
+    questionTypeMap,
     fetchData,
     handleQuery,
     handleReset,

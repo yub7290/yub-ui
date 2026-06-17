@@ -46,21 +46,24 @@ export function useMenuFormDialog(props, emit) {
     ]
   }
 
-  /** 父菜单名称显示 */
-  const parentName = computed(() => {
-    if (!props.menuTree || props.menuTree.length === 0) return ''
-    const findName = (list, id) => {
+  /** 将嵌套菜单树展平为 id→name 的 Map，供快速查找 */
+  const nameMap = computed(() => {
+    const map = new Map()
+    const flatten = (list) => {
+      if (!list) return
       for (const item of list) {
-        if (item.id === id) return item.name
-        if (item.children) {
-          const found = findName(item.children, id)
-          if (found) return found
-        }
+        map.set(item.id, item.name)
+        if (item.children) flatten(item.children)
       }
-      return ''
     }
-    if (formData.parentId === 0) return '顶级菜单'
-    return findName(props.menuTree, formData.parentId) || '顶级菜单'
+    flatten(props.menuTree)
+    return map
+  })
+
+  /** 父菜单名称显示（使用 nameMap 快速查找） */
+  const parentName = computed(() => {
+    if (formData.parentId === 0 || formData.parentId == null) return '顶级菜单'
+    return nameMap.value.get(formData.parentId) || '顶级菜单'
   })
 
   watch(() => props.modelValue, (val) => {

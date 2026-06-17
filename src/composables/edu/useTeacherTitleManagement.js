@@ -1,13 +1,13 @@
 import { ref, reactive, onMounted } from 'vue'
-import { getRolePage, deleteRole, changeRoleStatus } from '@/api/system/role'
+import { getTeacherTitlePage, deleteTeacherTitle, changeTeacherTitleStatus } from '@/api/edu/teacherTitle'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 /**
- * 角色管理页逻辑
+ * 教师职称管理页逻辑
  *
- * @returns {object} 角色管理页响应式状态和方法
+ * @returns {object} 教师职称管理页响应式状态和方法
  */
-export function useRoleManagement() {
+export function useTeacherTitleManagement() {
   const loading = ref(false)
   const tableData = ref([])
   const total = ref(0)
@@ -20,7 +20,7 @@ export function useRoleManagement() {
   })
 
   const dialogVisible = ref(false)
-  const editRoleId = ref(null)
+  const editId = ref(null)
 
   onMounted(() => {
     fetchData()
@@ -29,7 +29,7 @@ export function useRoleManagement() {
   async function fetchData() {
     loading.value = true
     try {
-      const res = await getRolePage({
+      const res = await getTeacherTitlePage({
         queryParam: { ...queryParams },
         pageParam: { pageNum: pageNum.value, pageSize: pageSize.value }
       })
@@ -57,23 +57,23 @@ export function useRoleManagement() {
   }
 
   function handleAdd() {
-    editRoleId.value = null
+    editId.value = null
     dialogVisible.value = true
   }
 
   function handleEdit(id) {
-    editRoleId.value = id
+    editId.value = id
     dialogVisible.value = true
   }
 
   async function handleDelete(id) {
     try {
-      await ElMessageBox.confirm('确定要删除该角色吗？', '删除确认', {
+      await ElMessageBox.confirm('确定要删除该教师职称吗？', '删除确认', {
         type: 'warning',
         confirmButtonText: '确定',
         cancelButtonText: '取消'
       })
-      await deleteRole(id)
+      await deleteTeacherTitle(id)
       ElMessage.success('删除成功')
       fetchData()
     } catch {
@@ -85,9 +85,9 @@ export function useRoleManagement() {
     const status = checked ? 1 : 0
     row._statusLoading = true
     try {
-      await changeRoleStatus(row.id, status)
-      ElMessage.success(checked ? '角色已启用' : '角色已停用')
-      fetchData()
+      await changeTeacherTitleStatus(row.id, status)
+      row.status = status
+      ElMessage.success(checked ? '职称已启用' : '职称已停用')
     } catch {
       // 错误已处理
     } finally {
@@ -103,7 +103,7 @@ export function useRoleManagement() {
     pageSize,
     queryParams,
     dialogVisible,
-    editRoleId,
+    editId,
     fetchData,
     handleQuery,
     handleReset,
