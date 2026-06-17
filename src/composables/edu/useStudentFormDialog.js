@@ -73,6 +73,12 @@ export function useStudentFormDialog(props, emit) {
     gender: [
       { required: true, message: '请选择性别', trigger: 'change' }
     ],
+    phone: [
+      { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+    ],
+    emergencyPhone: [
+      { pattern: /^1[3-9]\d{9}$/, message: '紧急电话格式不正确', trigger: 'blur' }
+    ],
     idCard: [
       { min: 18, max: 18, message: '身份证号长度为18位', trigger: 'blur' }
     ],

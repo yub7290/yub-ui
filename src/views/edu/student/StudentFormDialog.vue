@@ -85,7 +85,7 @@
         <el-tab-pane label="联系方式" name="contact">
           <el-row :gutter="20">
             <el-col :span="12">
-              <el-form-item label="移动电话">
+              <el-form-item label="移动电话" prop="phone">
                 <el-input v-model="formData.phone" placeholder="请输入手机号" maxlength="20" />
               </el-form-item>
             </el-col>
@@ -150,7 +150,7 @@
               </el-form-item>
             </el-col>
             <el-col :span="12">
-              <el-form-item label="紧急电话">
+              <el-form-item label="紧急电话" prop="emergencyPhone">
                 <el-input v-model="formData.emergencyPhone" placeholder="请输入紧急电话" maxlength="20" />
               </el-form-item>
             </el-col>
