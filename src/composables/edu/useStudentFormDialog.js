@@ -241,8 +241,9 @@ export function useStudentFormDialog(props, emit) {
         await updateStudent(payload)
         ElMessage.success('编辑成功')
       } else {
-        // 新建时使用默认密码（SM3(admin123) 的哈希值）
-        payload.password = '667c756cf9334e328a56e44e906245c8e214c655a160f18fdb84d79c209c49cf'
+        // 新建时不传密码，后端自动分配默认密码
+        // 默认密码为 admin123
+        delete payload.password
         await createStudent(payload)
         ElMessage.success('新增成功')
       }
