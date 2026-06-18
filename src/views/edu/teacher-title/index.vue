@@ -103,7 +103,6 @@
 </template>
 
 <script setup>
-import dayjs from 'dayjs'
 import { Plus, FolderOpened } from '@element-plus/icons-vue'
 import { useTeacherTitleManagement } from '@/composables/edu/useTeacherTitleManagement'
 import TeacherTitleFormDialog from './TeacherTitleFormDialog.vue'

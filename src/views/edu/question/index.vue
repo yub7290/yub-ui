@@ -60,7 +60,7 @@
         </el-table-column>
         <el-table-column label="试题（题干）" min-width="300">
           <template #default="{ row }">
-            <div class="question-content" v-html="row.content"></div>
+            <div class="question-content">{{ textPreview(row.content) }}</div>
           </template>
         </el-table-column>
         <el-table-column label="难度" width="100" align="center">
@@ -130,6 +130,12 @@
 import { Plus, FolderOpened } from '@element-plus/icons-vue'
 import { useQuestionManagement } from '@/composables/edu/useQuestionManagement'
 import QuestionFormDialog from './QuestionFormDialog.vue'
+
+/** Strip HTML tags and truncate for safe list display */
+function textPreview(html) {
+  if (!html) return ''
+  return html.replace(/<[^>]*>/g, '').substring(0, 100)
+}
 
 const {
   loading, tableData, total, pageNum, pageSize, queryParams,

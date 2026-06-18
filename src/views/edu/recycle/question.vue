@@ -14,7 +14,7 @@
         </el-table-column>
         <el-table-column prop="content" label="题干" min-width="300">
           <template #default="{ row }">
-            <div v-html="row.content" class="content-preview"></div>
+            <div class="content-preview">{{ textPreview(row.content) }}</div>
           </template>
         </el-table-column>
         <el-table-column prop="updateTime" label="删除时间" width="180" />
@@ -35,6 +35,12 @@
 <script setup>
 import { getRecycleQuestionList, restoreQuestion, deleteQuestionRecycle } from '@/api/edu/recycle'
 import { useRecycleManagement } from '@/composables/edu/useRecycleManagement'
+
+/** Strip HTML tags and truncate for safe list display */
+function textPreview(html) {
+  if (!html) return ''
+  return html.replace(/<[^>]*>/g, '').substring(0, 100)
+}
 
 const { loading, tableData, handleRestore, handleDelete } = useRecycleManagement(
   getRecycleQuestionList, restoreQuestion, deleteQuestionRecycle, '试题'

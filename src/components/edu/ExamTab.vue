@@ -280,6 +280,8 @@ async function loadMajorOptions() { try { const r = await getMajorTree({}); majo
 async function loadChapterTree() { if (!props.courseId) return; try { const r = await getChapterTree(props.courseId); chapterTree.value = r.data || [] } catch { chapterTree.value = [] } }
 
 // 从试题库获取当前课程各题型题目数量
+// 注意: 使用 pageSize:1000 是一个近似方案，如果课程试题超过1000条会不准确
+// TODO: 后端应提供 /edu/question/count-by-type?courseId=xxx 专用接口
 async function loadQuestionPerType() {
   if (!props.courseId) return
   try {
@@ -361,7 +363,21 @@ function handleAdd() {
 
 async function handleEdit(id) { editId.value = id; isEdit.value = true; activeTab.value = 'basic'; await loadChapterTree(); dialogVisible.value = true }
 async function handleDelete(id) { try { await ElMessageBox.confirm('确定要删除该试卷吗？', '删除确认', { type: 'warning' }); await deleteExam(id); ElMessage.success('删除成功'); fetchData() } catch {/**/} }
-async function handleBatchDelete() { if (!selectedIds.value.length) return; try { await ElMessageBox.confirm(`确定要删除选中的 ${selectedIds.value.length} 条试卷吗？`, '批量删除确认', { type: 'warning' }); for (const id of selectedIds.value) await deleteExam(id); ElMessage.success('批量删除成功'); selectedIds.value = []; fetchData() } catch {/**/} }
+async function handleBatchDelete() {
+  if (!selectedIds.value.length) return
+  try {
+    await ElMessageBox.confirm(`确定要删除选中的 ${selectedIds.value.length} 条试卷吗？`, '批量删除确认', { type: 'warning' })
+    const results = await Promise.allSettled(selectedIds.value.map(id => deleteExam(id)))
+    const failed = results.filter(r => r.status === 'rejected').length
+    if (failed > 0) {
+      ElMessage.warning(`${failed} 条删除失败，其余成功`)
+    } else {
+      ElMessage.success('批量删除成功')
+    }
+    selectedIds.value = []
+    fetchData()
+  } catch { /* cancel */ }
+}
 
 async function fetchData() {
   if (!props.courseId) return; loading.value = true

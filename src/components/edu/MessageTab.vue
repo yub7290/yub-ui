@@ -40,9 +40,13 @@ async function fetchData() {
   if (!props.courseId) return
   loading.value = true
   try {
-    const res = await getMessagePage({ courseId: props.courseId })
-    tableData.value = res.data || []
-    total.value = tableData.value.length
+    const res = await getMessagePage({
+      queryParam: { courseId: props.courseId },
+      pageParam: { pageNum: 1, pageSize: 100 }
+    })
+    const data = res.data
+    tableData.value = data.records || data || []
+    total.value = data.total || tableData.value.length
   } catch { tableData.value = []; total.value = 0 } finally { loading.value = false }
 }
 

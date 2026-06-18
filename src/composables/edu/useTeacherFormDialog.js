@@ -30,9 +30,6 @@ export function useTeacherFormDialog(props, emit) {
   const nationalityOptions = ref([])
   const nativePlaceOptions = ref([])
 
-  // 密码占位 — 编辑模式不显示，新建模式自动默认
-  const password = ref('')
-
   const formData = reactive({
     avatarUrl: '',
     account: '',

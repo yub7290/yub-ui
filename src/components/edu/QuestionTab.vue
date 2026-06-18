@@ -37,7 +37,7 @@
         </template>
       </el-table-column>
       <el-table-column label="题干" min-width="250">
-        <template #default="{ row }"><div class="cell-preview" v-html="row.content"></div></template>
+        <template #default="{ row }"><div class="cell-preview">{{ textPreview(row.content) }}</div></template>
       </el-table-column>
       <el-table-column label="难度" width="80" align="center">
         <template #default="{ row }">{{ '⭐'.repeat(row.difficulty || 0) }}</template>
@@ -80,6 +80,12 @@ import { getDictOptions } from '@/api/system/dictData'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import QuestionFormDialog from '@/views/edu/question/QuestionFormDialog.vue'
+
+/** Strip HTML tags and truncate for safe list display */
+function textPreview(html) {
+  if (!html) return ''
+  return html.replace(/<[^>]*>/g, '').substring(0, 100)
+}
 
 const props = defineProps({
   courseId: { type: Number, default: null },

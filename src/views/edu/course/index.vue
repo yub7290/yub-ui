@@ -198,7 +198,6 @@
 </template>
 
 <script setup>
-import dayjs from 'dayjs'
 import { Plus, FolderOpened } from '@element-plus/icons-vue'
 import { useCourseManagement } from '@/composables/edu/useCourseManagement'
 import CourseFormDialog from './CourseFormDialog.vue'
@@ -209,11 +208,6 @@ const {
   fetchData, handleQuery, handleReset, handleAdd, handleEdit, handleDelete,
   handleStatusChange, handleSetRecommended, handleShowOverview
 } = useCourseManagement()
-
-/** 格式化日期时间 */
-function formatDateTime(date) {
-  return date ? dayjs(date).format('YYYY-MM-DD HH:mm:ss') : '-'
-}
 </script>
 
 <style scoped>

@@ -103,12 +103,14 @@ const routes = [
       {
         path: 'edu/certificate',
         name: 'EduCertificate',
+        // TODO: implement certificate feature - placeholder for now
         component: () => import('@/views/placeholder/index.vue'),
         meta: { title: '学习证明', icon: 'Trophy' }
       },
       {
         path: 'edu/weight',
         name: 'EduWeight',
+        // TODO: implement weight feature - placeholder for now
         component: () => import('@/views/placeholder/index.vue'),
         meta: { title: '学习权重', icon: 'ScaleToOriginal' }
       },
