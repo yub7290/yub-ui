@@ -89,3 +89,14 @@ export function changeTeacherStatus(id, status) {
 export function getTeacherOptions() {
   return request.get('/edu/teacher/options')
 }
+
+/**
+ * 设置教师推荐状态
+ *
+ * @param {number} id 教师ID
+ * @param {number} recommended 推荐状态（1=推荐 0=不推荐）
+ * @returns {Promise}
+ */
+export function setTeacherRecommended(id, recommended) {
+  return request.put(`/edu/teacher/${id}/recommended`, null, { params: { recommended } })
+}

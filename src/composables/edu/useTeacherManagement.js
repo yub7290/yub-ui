@@ -4,7 +4,8 @@ import {
   deleteTeacher,
   deleteTeacherBatch,
   resetTeacherPassword,
-  changeTeacherStatus
+  changeTeacherStatus,
+  setTeacherRecommended
 } from '@/api/edu/teacher'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -148,6 +149,20 @@ export function useTeacherManagement() {
     }
   }
 
+  async function handleSetRecommended(row, checked) {
+    const recommended = checked ? 1 : 0
+    row._recommendLoading = true
+    try {
+      await setTeacherRecommended(row.id, recommended)
+      row.recommended = recommended
+      ElMessage.success(checked ? '已设为推荐教师' : '已取消推荐')
+    } catch {
+      // 错误已处理
+    } finally {
+      row._recommendLoading = false
+    }
+  }
+
   return {
     loading,
     tableData,
@@ -167,6 +182,7 @@ export function useTeacherManagement() {
     handleBatchDelete,
     handleResetPwd,
     handleStatusChange,
+    handleSetRecommended,
     handleSelectionChange
   }
 }

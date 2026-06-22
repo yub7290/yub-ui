@@ -126,12 +126,15 @@ export function useCourseManagement() {
 
   async function handleSetRecommended(row) {
     const newVal = row.recommended === 1 ? 0 : 1
+    row._recommendLoading = true
     try {
       await setCourseRecommended(row.id, newVal)
       row.recommended = newVal
       ElMessage.success(newVal === 1 ? '已设为推荐课程' : '已取消推荐')
     } catch {
       // 错误已处理
+    } finally {
+      row._recommendLoading = false
     }
   }
 

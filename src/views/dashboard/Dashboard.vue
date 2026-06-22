@@ -64,13 +64,27 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, onMounted } from 'vue'
+import { getDashboardStats } from '@/api/system/dashboard'
 
 const stats = reactive({
   courseCount: 0,
   studentCount: 0,
   examCount: 0,
   accessCount: 0
+})
+
+onMounted(async () => {
+  try {
+    const res = await getDashboardStats()
+    const data = res.data
+    stats.courseCount = data.courseCount || 0
+    stats.studentCount = data.studentCount || 0
+    stats.examCount = data.examCount || 0
+    stats.accessCount = data.accessCount || 0
+  } catch {
+    // 保留默认值 0
+  }
 })
 </script>
 

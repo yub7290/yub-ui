@@ -49,6 +49,12 @@ const routes = [
         component: () => import('@/views/system/dict/index.vue'),
         meta: { title: '数据字典', icon: 'Notebook' }
       },
+      {
+        path: 'system/banner',
+        name: 'Banner',
+        component: () => import('@/views/system/banner/index.vue'),
+        meta: { title: 'Banner管理', icon: 'PictureFilled' }
+      },
       // 教育模块 - 学习内容目录（重定向到课程）
       {
         path: 'edu/content',

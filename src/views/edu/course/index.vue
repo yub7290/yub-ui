@@ -76,6 +76,18 @@
             />
           </template>
         </el-table-column>
+        <el-table-column label="推荐" width="80" align="center">
+          <template #default="{ row }">
+            <el-switch
+              :model-value="row.recommended === 1"
+              :loading="row._recommendLoading"
+              @change="handleSetRecommended(row)"
+              size="small"
+              active-color="#f59e0b"
+              inactive-color="#cbd5e1"
+            />
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="220" align="center" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleShowOverview(row.id)">综述</el-button>

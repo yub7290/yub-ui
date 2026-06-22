@@ -82,6 +82,18 @@
             />
           </template>
         </el-table-column>
+        <el-table-column prop="recommended" label="推荐" width="80" align="center">
+          <template #default="{ row }">
+            <el-switch
+              :model-value="row.recommended === 1"
+              :loading="row._recommendLoading"
+              @change="(val) => handleSetRecommended(row, val)"
+              size="small"
+              active-color="#f59e0b"
+              inactive-color="#cbd5e1"
+            />
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="230" align="center" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleEdit(row.id)">编辑</el-button>
@@ -135,7 +147,7 @@ const {
   loading, tableData, total, pageNum, pageSize, queryParams,
   dialogVisible, editId, selectedIds,
   fetchData, handleQuery, handleReset, handleAdd, handleEdit,
-  handleDelete, handleBatchDelete, handleResetPwd, handleStatusChange, handleSelectionChange
+  handleDelete, handleBatchDelete, handleResetPwd, handleStatusChange, handleSetRecommended, handleSelectionChange
 } = useTeacherManagement()
 
 /** 格式化日期时间，去掉 T */
