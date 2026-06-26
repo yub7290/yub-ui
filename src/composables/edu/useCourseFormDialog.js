@@ -128,6 +128,7 @@ export function useCourseFormDialog(props, emit) {
 
   async function handleOpen() {
     await loadMajorOptions()
+    await loadTeacherOptions()
     if (props.courseId) {
       // 编辑模式：加载完整数据，显示所有标签页
       isCreateMode.value = false

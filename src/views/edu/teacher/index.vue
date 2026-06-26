@@ -94,6 +94,11 @@
             />
           </template>
         </el-table-column>
+        <el-table-column label="评分" width="170" align="center" sortable prop="rating">
+          <template #default="{ row }">
+            <el-rate :model-value="row.rating" disabled show-score score-template="{value}分" :max="5" />
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="230" align="center" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleEdit(row.id)">编辑</el-button>

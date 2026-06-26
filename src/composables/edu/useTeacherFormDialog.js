@@ -40,6 +40,7 @@ export function useTeacherFormDialog(props, emit) {
     phone: '',
     idCard: '',
     status: 1,
+    rating: 5,
     fixedPhone: '',
     email: '',
     qq: '',
@@ -146,6 +147,7 @@ export function useTeacherFormDialog(props, emit) {
         phone: data.phone || '',
         idCard: data.idCard || '',
         status: data.status,
+        rating: data.rating ?? 5,
         fixedPhone: data.fixedPhone || '',
         email: data.email || '',
         qq: data.qq || '',
@@ -188,6 +190,7 @@ export function useTeacherFormDialog(props, emit) {
   function resetForm() {
     Object.keys(formData).forEach(key => {
       if (key === 'status') formData[key] = 1
+      else if (key === 'rating') formData[key] = 5
       else if (key === 'titleId' || key === 'gender') formData[key] = null
       else if (key === 'birthDate') formData[key] = null
       else formData[key] = ''

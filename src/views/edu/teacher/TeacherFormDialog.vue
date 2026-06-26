@@ -74,6 +74,13 @@
               </el-form-item>
             </el-col>
           </el-row>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="评分">
+                <el-rate v-model="formData.rating" :max="5" show-score score-template="{value}分" />
+              </el-form-item>
+            </el-col>
+          </el-row>
         </el-tab-pane>
 
         <!-- ===== 联系方式 ===== -->
