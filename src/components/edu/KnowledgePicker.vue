@@ -12,13 +12,13 @@
       <el-col :span="14">
         <div class="picker-panel">
           <div class="picker-panel-title">知识点（勾选关联）</div>
-          <div class="kp-list" v-if="selectedCategoryId">
+          <div class="kp-list" v-if="showKnowledgeList">
             <el-checkbox-group v-model="selectedIds" @change="emitChange">
               <div v-for="kp in knowledgePoints" :key="kp.id" class="kp-item">
                 <el-checkbox :label="kp.id">{{ kp.title }}</el-checkbox>
               </div>
             </el-checkbox-group>
-            <el-empty v-if="knowledgePoints.length === 0" description="该分类下暂无知识点" :image-size="40" />
+            <el-empty v-if="knowledgePoints.length === 0" :description="emptyDescription" :image-size="40" />
           </div>
           <div v-else class="picker-placeholder">请先在左侧选择分类</div>
         </div>
@@ -31,12 +31,14 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import { getCategoryTree } from '@/api/edu/knowledgeCategory'
-import { getKnowledgeListByCategory } from '@/api/edu/knowledgePoint'
+import { getKnowledgeListByCategory, getKnowledgeListByCourse } from '@/api/edu/knowledgePoint'
 
 const props = defineProps({
-  modelValue: { type: Array, default: () => [] }
+  modelValue: { type: Array, default: () => [] },
+  courseId: { type: Number, default: null },
+  scope: { type: String, default: 'global' } // global: 全局知识点（章节/试题用）；course: 课程专属知识点
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -63,6 +65,18 @@ function emitChange() {
   setTimeout(() => { isInternal = false }, 0)
 }
 
+// 全局模式下需先选分类；课程模式下直接展示课程知识点
+const showKnowledgeList = computed(() => {
+  return props.scope === 'course' || !!selectedCategoryId.value
+})
+
+const emptyDescription = computed(() => {
+  if (props.scope === 'course') {
+    return '该课程下暂无知识点，请先在「知识点」标签页添加'
+  }
+  return '该分类下暂无知识点'
+})
+
 async function loadCategoryTree() {
   try {
     const res = await getCategoryTree()
@@ -70,15 +84,47 @@ async function loadCategoryTree() {
   } catch { categoryTree.value = [] }
 }
 
-async function onCategoryClick(data) {
-  selectedCategoryId.value = data.id
+async function loadKpByCourse() {
+  if (!props.courseId) return
   try {
-    const res = await getKnowledgeListByCategory(data.id)
+    const params = {}
+    if (selectedCategoryId.value) {
+      params.categoryId = selectedCategoryId.value
+    }
+    const res = await getKnowledgeListByCourse(props.courseId, params)
     knowledgePoints.value = res.data || []
   } catch { knowledgePoints.value = [] }
 }
 
-onMounted(() => { loadCategoryTree() })
+async function onCategoryClick(data) {
+  selectedCategoryId.value = data.id
+  if (props.scope === 'course' && props.courseId) {
+    await loadKpByCourse()
+  } else {
+    try {
+      const res = await getKnowledgeListByCategory(data.id)
+      knowledgePoints.value = res.data || []
+    } catch { knowledgePoints.value = [] }
+  }
+}
+
+// 当 courseId 变化时重新加载知识点（仅课程模式）
+watch(() => props.courseId, () => {
+  selectedCategoryId.value = null
+  if (props.scope === 'course' && props.courseId) {
+    loadKpByCourse()
+  } else {
+    knowledgePoints.value = []
+  }
+})
+
+onMounted(async () => {
+  await loadCategoryTree()
+  // 课程模式下，默认加载该课程的所有知识点
+  if (props.scope === 'course' && props.courseId) {
+    await loadKpByCourse()
+  }
+})
 </script>
 
 <style scoped>

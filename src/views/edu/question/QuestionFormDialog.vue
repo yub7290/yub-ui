@@ -114,7 +114,7 @@
 
       <!-- ===== 知识点 ===== -->
       <el-tab-pane label="知识点" name="knowledge">
-        <KnowledgePicker :model-value="selectedKnowledgeIds" @update:model-value="onKnowledgeChange" />
+        <KnowledgePicker v-model="formData.knowledgePointIds" scope="global" />
       </el-tab-pane>
     </el-tabs>
 
@@ -153,25 +153,6 @@ const {
 // 课程选项（根据专业筛选）
 const courseOptions = ref([])
 const chapterTree = ref([])
-
-// 知识点选择
-const selectedKnowledgeIds = ref([])
-
-// 对话框每次打开时，从已有数据初始化
-watch(visible, (val) => {
-  if (!val) return
-  if (formData.knowledgePoints) {
-    selectedKnowledgeIds.value = formData.knowledgePoints.split(',').map(Number).filter(Boolean)
-  } else {
-    selectedKnowledgeIds.value = []
-  }
-})
-
-// 知识点勾选变化时，直接同步到 formData（纯事件驱动，无 watcher 循环）
-function onKnowledgeChange(ids) {
-  selectedKnowledgeIds.value = ids
-  formData.knowledgePoints = ids.join(',')
-}
 
 watch(() => formData.majorId, async (val) => {
   if (val) {

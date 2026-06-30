@@ -1,5 +1,5 @@
 import { ref, reactive, watch } from 'vue'
-import { createQuestion, updateQuestion, getQuestionDetail } from '@/api/edu/question'
+import { createQuestion, updateQuestion, getQuestionDetail, getQuestionKnowledgeIds } from '@/api/edu/question'
 import { getMajorTree } from '@/api/edu/major'
 import { getDictOptions } from '@/api/system/dictData'
 import { ElMessage } from 'element-plus'
@@ -25,7 +25,7 @@ export function useQuestionFormDialog(props, emit) {
     courseId: null,
     chapterId: null,
     analysis: '',
-    knowledgePoints: '',
+    knowledgePointIds: [],
     answer: '',
     options: []
   })
@@ -87,7 +87,7 @@ export function useQuestionFormDialog(props, emit) {
       formData.courseId = data.courseId || null
       formData.chapterId = data.chapterId || null
       formData.analysis = data.analysis || ''
-      formData.knowledgePoints = data.knowledgePoints || ''
+      formData.knowledgePointIds = []
       formData.answer = data.answer || ''
       formData.options = (data.options || []).map(o => ({
         label: o.label,
@@ -98,6 +98,12 @@ export function useQuestionFormDialog(props, emit) {
       if ((data.questionType === 0 || data.questionType === 1) && formData.options.length === 0) {
         initOptions()
       }
+
+      // 加载已关联知识点 ID
+      try {
+        const kidRes = await getQuestionKnowledgeIds(props.questionId)
+        formData.knowledgePointIds = kidRes.data || []
+      } catch { formData.knowledgePointIds = [] }
     } else {
       isEdit.value = false
       // 从父组件传入默认值（QuestionTab 在课程上下文中用）
@@ -164,7 +170,7 @@ export function useQuestionFormDialog(props, emit) {
     formData.courseId = null
     formData.chapterId = null
     formData.analysis = ''
-    formData.knowledgePoints = ''
+    formData.knowledgePointIds = []
     formData.answer = ''
     formData.options = []
     isEdit.value = false
@@ -187,7 +193,7 @@ export function useQuestionFormDialog(props, emit) {
         courseId: formData.courseId || null,
         chapterId: formData.chapterId || null,
         analysis: formData.analysis || null,
-        knowledgePoints: formData.knowledgePoints || null,
+        knowledgePointIds: formData.knowledgePointIds,
         answer: formData.answer || null,
         options: formData.options.length > 0 ? formData.options : null
       }

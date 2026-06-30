@@ -68,84 +68,92 @@
       destroy-on-close
     >
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="章节名称" prop="name">
-              <el-input v-model="formData.name" placeholder="请输入章节名称" maxlength="200" />
+        <el-tabs v-model="activeTab" type="border-card">
+          <el-tab-pane label="基本信息" name="basic">
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="章节名称" prop="name">
+                  <el-input v-model="formData.name" placeholder="请输入章节名称" maxlength="200" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="上级章节">
+                  <el-tree-select
+                    v-model="formData.parentId"
+                    :data="treeData"
+                    :props="{ label: 'name', value: 'id', children: 'children' }"
+                    placeholder="不选则为顶级章节"
+                    clearable
+                    check-strictly
+                    style="width:100%"
+                    :disabled="disableParentSelect"
+                  />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <el-form-item label="状态">
+                  <el-switch v-model="formData.status" :active-value="1" :inactive-value="0" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item>
+                  <template #label>
+                    完结
+                    <el-tooltip content="编辑完成的章节，学员才能学习" placement="top">
+                      <el-icon style="margin-left:4px;color:#909399;cursor:help;font-size:14px"><InfoFilled /></el-icon>
+                    </el-tooltip>
+                  </template>
+                  <el-checkbox v-model="formData.isCompleted" :true-value="1" :false-value="0" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="8">
+                <el-form-item>
+                  <template #label>
+                    免费
+                    <el-tooltip content="允许试学时免费试学" placement="top">
+                      <el-icon style="margin-left:4px;color:#909399;cursor:help;font-size:14px"><InfoFilled /></el-icon>
+                    </el-tooltip>
+                  </template>
+                  <el-checkbox v-model="formData.isFree" :true-value="1" :false-value="0" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-form-item label="图文资料">
+              <RichEditor v-model="formData.contentText" />
             </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="上级章节">
-              <el-tree-select
-                v-model="formData.parentId"
-                :data="treeData"
-                :props="{ label: 'name', value: 'id', children: 'children' }"
-                placeholder="不选则为顶级章节"
-                clearable
-                check-strictly
-                style="width:100%"
-                :disabled="disableParentSelect"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-form-item label="状态">
-              <el-switch v-model="formData.status" :active-value="1" :inactive-value="0" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="8">
             <el-form-item>
               <template #label>
-                完结
-                <el-tooltip content="编辑完成的章节，学员才能学习" placement="top">
+                直播
+                <el-tooltip content="当前章节作为直播课" placement="top">
                   <el-icon style="margin-left:4px;color:#909399;cursor:help;font-size:14px"><InfoFilled /></el-icon>
                 </el-tooltip>
               </template>
-              <el-checkbox v-model="formData.isCompleted" :true-value="1" :false-value="0" />
+              <el-checkbox v-model="formData.isLive" :true-value="1" :false-value="0" />
             </el-form-item>
-          </el-col>
-          <el-col :span="8">
-            <el-form-item>
-              <template #label>
-                免费
-                <el-tooltip content="允许试学时免费试学" placement="top">
-                  <el-icon style="margin-left:4px;color:#909399;cursor:help;font-size:14px"><InfoFilled /></el-icon>
-                </el-tooltip>
-              </template>
-              <el-checkbox v-model="formData.isFree" :true-value="1" :false-value="0" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="图文资料">
-          <RichEditor v-model="formData.contentText" />
-        </el-form-item>
-        <el-form-item>
-          <template #label>
-            直播
-            <el-tooltip content="当前章节作为直播课" placement="top">
-              <el-icon style="margin-left:4px;color:#909399;cursor:help;font-size:14px"><InfoFilled /></el-icon>
-            </el-tooltip>
-          </template>
-          <el-checkbox v-model="formData.isLive" :true-value="1" :false-value="0" />
-        </el-form-item>
-        <template v-if="formData.isLive === 1">
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="开始时间" prop="liveStartTime">
-                <el-date-picker v-model="formData.liveStartTime" type="datetime" placeholder="选择直播开始时间" style="width:100%" />
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="直播时长" prop="liveDuration">
-                <el-input-number v-model="formData.liveDuration" :min="0" :max="1440" style="width:100%">
-                  <template #suffix>分钟</template>
-                </el-input-number>
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </template>
+            <template v-if="formData.isLive === 1">
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="开始时间" prop="liveStartTime">
+                    <el-date-picker v-model="formData.liveStartTime" type="datetime" placeholder="选择直播开始时间" style="width:100%" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="直播时长" prop="liveDuration">
+                    <el-input-number v-model="formData.liveDuration" :min="0" :max="1440" style="width:100%">
+                      <template #suffix>分钟</template>
+                    </el-input-number>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </template>
+          </el-tab-pane>
+
+          <el-tab-pane label="关联知识点" name="knowledge">
+            <KnowledgePicker v-model="formData.knowledgePointIds" scope="global" />
+          </el-tab-pane>
+        </el-tabs>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
@@ -156,11 +164,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, nextTick } from 'vue'
-import { getChapterTree, getChapterDetail, createChapter, updateChapter, deleteChapter } from '@/api/edu/chapter'
+import { ref, reactive, watch } from 'vue'
+import { getChapterTree, getChapterDetail, createChapter, updateChapter, deleteChapter, getChapterKnowledgeIds, saveChapterKnowledge } from '@/api/edu/chapter'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, InfoFilled } from '@element-plus/icons-vue'
 import RichEditor from '@/components/RichEditor.vue'
+import KnowledgePicker from '@/components/edu/KnowledgePicker.vue'
 
 const props = defineProps({
   courseId: { type: Number, required: true }
@@ -176,6 +185,8 @@ const submitting = ref(false)
 const editId = ref(null)
 const formRef = ref(null)
 const disableParentSelect = ref(false)
+const activeTab = ref('basic')
+const knowledgeLoadFailed = ref(false)
 
 const formData = reactive({
   name: '',
@@ -186,7 +197,8 @@ const formData = reactive({
   contentText: '',
   isLive: 0,
   liveStartTime: null,
-  liveDuration: null
+  liveDuration: null,
+  knowledgePointIds: []
 })
 
 const formRules = {
@@ -233,6 +245,18 @@ async function handleEdit(id) {
     formData.liveStartTime = data.liveStartTime || null
     formData.liveDuration = data.liveDuration || null
     disableParentSelect.value = true
+
+    // 加载已关联知识点
+    try {
+      const kidRes = await getChapterKnowledgeIds(id)
+      formData.knowledgePointIds = kidRes.data || []
+      knowledgeLoadFailed.value = false
+    } catch {
+      knowledgeLoadFailed.value = true
+      formData.knowledgePointIds = []
+      ElMessage.warning('知识点关联加载失败，保存时不会修改已有关联')
+    }
+
     dialogVisible.value = true
   } catch {
     ElMessage.error('获取章节详情失败')
@@ -240,6 +264,8 @@ async function handleEdit(id) {
 }
 
 function handleDialogOpen() {
+  activeTab.value = 'basic'
+  knowledgeLoadFailed.value = false
   if (!isEdit.value) {
     disableParentSelect.value = false
   }
@@ -255,6 +281,8 @@ function resetForm() {
   formData.isLive = 0
   formData.liveStartTime = null
   formData.liveDuration = null
+  formData.knowledgePointIds = []
+  knowledgeLoadFailed.value = false
   isEdit.value = false
   disableParentSelect.value = false
   if (formRef.value) formRef.value.resetFields()
@@ -279,14 +307,27 @@ async function handleSubmit() {
       liveDuration: formData.liveDuration
     }
 
+    let chapterId
     if (isEdit.value) {
-      payload.id = editId.value
+      chapterId = editId.value
+      payload.id = chapterId
       await updateChapter(payload)
       ElMessage.success('编辑成功')
     } else {
-      await createChapter(payload)
+      const res = await createChapter(payload)
+      chapterId = res.data
       ElMessage.success('新增成功')
     }
+
+    // 保存章节关联知识点（加载失败时不修改，避免清空已有关联）
+    if (!knowledgeLoadFailed.value) {
+      try {
+        await saveChapterKnowledge(chapterId, formData.knowledgePointIds)
+      } catch {
+        ElMessage.warning('章节已保存，但知识点关联保存失败')
+      }
+    }
+
     dialogVisible.value = false
     await loadTree()
     emit('change')
@@ -302,12 +343,17 @@ async function handleDelete(id) {
     await ElMessageBox.confirm('确定要删除该章节吗？', '删除确认', {
       type: 'warning', confirmButtonText: '确定', cancelButtonText: '取消'
     })
+  } catch {
+    // 取消操作
+    return
+  }
+  try {
     await deleteChapter(id)
     ElMessage.success('删除成功')
     await loadTree()
     emit('change')
   } catch {
-    // 取消操作
+    ElMessage.error('删除失败')
   }
 }
 </script>

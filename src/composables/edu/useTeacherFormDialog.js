@@ -173,10 +173,24 @@ export function useTeacherFormDialog(props, emit) {
     }
   }
 
-  /** 头像上传 */
+  /** 头像上传（含前置校验） */
   async function handleAvatarUpload(event) {
     const file = event.target?.files?.[0]
     if (!file) return
+    // 前置校验：大小 ≤5MB
+    const maxSize = 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      ElMessage.error('文件大小不能超过 5MB')
+      event.target.value = ''
+      return
+    }
+    // 前置校验：仅允许 JPG/JPEG/PNG/GIF
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']
+    if (!allowedTypes.includes(file.type)) {
+      ElMessage.error('仅支持 JPG/JPEG/PNG/GIF 格式的图片')
+      event.target.value = ''
+      return
+    }
     try {
       const res = await uploadImage(file, 'edu/avatars')
       avatarUrl.value = res.data
@@ -184,6 +198,9 @@ export function useTeacherFormDialog(props, emit) {
       ElMessage.success('头像上传成功')
     } catch {
       ElMessage.error('头像上传失败')
+    } finally {
+      // 清空 input，允许重复选择同一文件
+      event.target.value = ''
     }
   }
 

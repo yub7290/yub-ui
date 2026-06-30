@@ -38,7 +38,7 @@
         <div class="kt-panel">
           <div class="kt-panel-header">
             <span>知识点</span>
-            <el-button size="small" type="primary" :disabled="!selectedCategoryId" @click="showKpDialog(null)">
+            <el-button size="small" type="primary" :disabled="!canAddKnowledge" @click="showKpDialog(null)">
               <el-icon><Plus /></el-icon>新增
             </el-button>
           </div>
@@ -54,8 +54,7 @@
                 <el-button text size="small" type="danger" @click="confirmDeleteKp(kp.id)">删除</el-button>
               </div>
             </div>
-            <el-empty v-if="!selectedCategoryId" description="请先选择分类" :image-size="50" />
-            <el-empty v-else-if="kpList.length === 0" description="该分类下暂无知识点" :image-size="50" />
+            <el-empty v-if="kpList.length === 0" :description="emptyText" :image-size="50" />
           </div>
         </div>
       </el-col>
@@ -81,11 +80,15 @@
       </template>
     </el-dialog>
 
-    <!-- 知识点编辑弹窗 -->
+    <!-- 知识点编辑弹窗（课程模式下增加分类选择） -->
     <el-dialog v-model="kpDialogVisible" :title="editingKpId ? '编辑知识点' : '新增知识点'" width="650px" destroy-on-close>
       <el-form ref="kpFormRef" :model="kpForm" :rules="kpRules" label-width="70px" size="small">
         <el-form-item label="标题" prop="title">
           <el-input v-model="kpForm.title" maxlength="200" />
+        </el-form-item>
+        <el-form-item v-if="!!props.courseId" label="分类" prop="categoryId">
+          <el-tree-select v-model="kpForm.categoryId" :data="categoryTree"
+            :props="{ label: 'name', value: 'id' }" placeholder="请选择分类" clearable check-strictly style="width:100%" />
         </el-form-item>
         <el-form-item label="状态">
           <el-switch v-model="kpForm.status" :active-value="1" :inactive-value="0" />
@@ -103,12 +106,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { getCategoryTree, getCategoryDetail, createCategory, updateCategory, deleteCategory } from '@/api/edu/knowledgeCategory'
-import { getKnowledgeListByCategory, getKnowledgeDetail, createKnowledge, updateKnowledge, deleteKnowledge } from '@/api/edu/knowledgePoint'
+import { getKnowledgeListByCategory, getKnowledgeListByCourse, getKnowledgeDetail, createKnowledge, updateKnowledge, deleteKnowledge } from '@/api/edu/knowledgePoint'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import RichEditor from '@/components/RichEditor.vue'
+
+const props = defineProps({
+  courseId: { type: Number, default: null }
+})
 
 // ====== 分类树 ======
 const categoryTree = ref([])
@@ -125,6 +132,49 @@ function onCategoryClick(data) {
   selectedCategoryId.value = data.id
   loadKpList()
 }
+
+// ====== 知识点列表 ======
+const kpList = ref([])
+
+const emptyText = computed(() => {
+  if (!selectedCategoryId.value && !props.courseId) {
+    return '请先选择分类'
+  }
+  return '暂无知识点'
+})
+
+const canAddKnowledge = computed(() => {
+  // 课程模式下，不需要选择分类即可新增
+  if (props.courseId) return true
+  // 分类模式下，需要选中分类才能新增
+  return !!selectedCategoryId.value
+})
+
+async function loadKpList() {
+  try {
+    if (props.courseId) {
+      // 课程知识点模式：调用按课程查询接口
+      const params = {}
+      if (selectedCategoryId.value) {
+        params.categoryId = selectedCategoryId.value
+      }
+      const res = await getKnowledgeListByCourse(props.courseId, params)
+      kpList.value = res.data || []
+    } else if (selectedCategoryId.value) {
+      // 纯分类模式（原逻辑）
+      const res = await getKnowledgeListByCategory(selectedCategoryId.value)
+      kpList.value = res.data || []
+    } else {
+      kpList.value = []
+    }
+  } catch { kpList.value = [] }
+}
+
+// 当 courseId 变化时重置并重新加载
+watch(() => props.courseId, () => {
+  selectedCategoryId.value = null
+  loadKpList()
+})
 
 // ====== 分类 CRUD ======
 const catDialogVisible = ref(false)
@@ -172,23 +222,12 @@ async function confirmDeleteCat(id) {
   } catch { /* 取消 */ }
 }
 
-// ====== 知识点列表 ======
-const kpList = ref([])
-
-async function loadKpList() {
-  if (!selectedCategoryId.value) { kpList.value = []; return }
-  try {
-    const res = await getKnowledgeListByCategory(selectedCategoryId.value)
-    kpList.value = res.data || []
-  } catch { kpList.value = [] }
-}
-
 // ====== 知识点 CRUD ======
 const kpDialogVisible = ref(false)
 const editingKpId = ref(null)
 const kpSubmitting = ref(false)
 const kpFormRef = ref(null)
-const kpForm = ref({ title: '', content: '', status: 1 })
+const kpForm = ref({ title: '', content: '', status: 1, categoryId: null })
 const kpRules = { title: [{ required: true, message: '请输入标题', trigger: 'blur' }] }
 
 async function showKpDialog(id) {
@@ -197,20 +236,45 @@ async function showKpDialog(id) {
     try {
       const res = await getKnowledgeDetail(id)
       const d = res.data
-      kpForm.value = { title: d.title, content: d.content || '', status: d.status ?? 1 }
+      kpForm.value = {
+        title: d.title,
+        content: d.content || '',
+        status: d.status ?? 1,
+        categoryId: d.categoryId || null
+      }
+      kpDialogVisible.value = true
     } catch { /* 错误已处理 */ }
   } else {
-    kpForm.value = { title: '', content: '', status: 1 }
+    // 新增时，课程模式下默认使用当前选中分类
+    kpForm.value = {
+      title: '',
+      content: '',
+      status: 1,
+      categoryId: selectedCategoryId.value
+    }
+    kpDialogVisible.value = true
   }
-  kpDialogVisible.value = true
 }
 
 async function submitKp() {
+  if (!kpFormRef.value) return
+  try { await kpFormRef.value.validate() } catch { return }
   kpSubmitting.value = true
   try {
-    const payload = { ...kpForm.value, categoryId: selectedCategoryId.value }
+    const payload = { ...kpForm.value }
+    if (props.courseId) {
+      // 课程模式下带上 courseId，分类来自弹窗选择
+      payload.courseId = props.courseId
+    } else {
+      // 分类模式下，分类来自当前选中的树节点
+      payload.categoryId = selectedCategoryId.value
+    }
+    // 删除空 categoryId（非课程模式时 categoryId 由 selectedCategoryId 提供）
+    if (!payload.categoryId) delete payload.categoryId
+
     if (editingKpId.value) {
-      await updateKnowledge({ id: editingKpId.value, ...payload })
+      payload.id = editingKpId.value
+      await updateKnowledge(payload)
       ElMessage.success('编辑成功')
     } else {
       await createKnowledge(payload)

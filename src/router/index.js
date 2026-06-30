@@ -101,6 +101,12 @@ const routes = [
         meta: { title: '教师职称', icon: 'Collection' }
       },
       {
+        path: 'edu/announcement',
+        name: 'EduAnnouncement',
+        component: () => import('@/views/edu/announcement/index.vue'),
+        meta: { title: '课程公告', icon: 'Message' }
+      },
+      {
         path: 'edu/student',
         name: 'EduStudent',
         component: () => import('@/views/edu/student/index.vue'),

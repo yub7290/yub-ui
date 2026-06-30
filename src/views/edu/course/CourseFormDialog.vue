@@ -122,7 +122,8 @@
         </el-tab-pane>
 
         <el-tab-pane label="知识点" name="knowledge">
-          <KnowledgeTab />
+          <KnowledgeTab v-if="currentCourseId" :course-id="currentCourseId" />
+          <el-empty v-else description="请先保存课程后管理知识点" :image-size="80" />
         </el-tab-pane>
 
         <el-tab-pane label="公告" name="announcement">
@@ -133,6 +134,11 @@
         <el-tab-pane label="留言" name="message">
           <MessageTab v-if="currentCourseId" :course-id="currentCourseId" />
           <el-empty v-else description="请先保存课程后管理留言" :image-size="80" />
+        </el-tab-pane>
+
+        <el-tab-pane label="AI助教" name="ai">
+          <AiConfigTab v-if="currentCourseId" :course-id="currentCourseId" />
+          <el-empty v-else description="请先保存课程后配置AI助教" :image-size="80" />
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -155,6 +161,7 @@ import ExamTab from '@/components/edu/ExamTab.vue'
 import AnnouncementTab from '@/components/edu/AnnouncementTab.vue'
 import PricePlanTab from '@/components/edu/PricePlanTab.vue'
 import MessageTab from '@/components/edu/MessageTab.vue'
+import AiConfigTab from '@/components/edu/AiConfigTab.vue'
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },

@@ -17,8 +17,8 @@
                   <img v-if="avatarUrl" :src="avatarUrl" class="avatar" />
                   <el-icon v-else class="avatar-uploader-icon" :size="28"><Plus /></el-icon>
                 </div>
-                <input ref="avatarInput" type="file" accept="image/*" style="display:none" @change="handleAvatarUpload" />
-                <span class="avatar-hint">支持 JPG/PNG，建议 200×200px</span>
+                <input ref="avatarInput" type="file" accept="image/jpeg,image/png,image/gif" style="display:none" @change="handleAvatarUpload" />
+                <span class="avatar-hint">支持 JPG/PNG/GIF，不超过 5MB</span>
               </el-form-item>
             </el-col>
           </el-row>

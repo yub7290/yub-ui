@@ -60,3 +60,24 @@ export function deleteQuestion(id) {
 export function changeQuestionStatus(id, status) {
   return request.put(`/edu/question/${id}/status`, { status })
 }
+
+/**
+ * 获取试题已关联知识点 ID 列表
+ *
+ * @param {number} id 试题ID
+ * @returns {Promise}
+ */
+export function getQuestionKnowledgeIds(id) {
+  return request.get(`/edu/question/${id}/knowledge`)
+}
+
+/**
+ * 保存试题关联知识点
+ *
+ * @param {number} id 试题ID
+ * @param {number[]} data 知识点ID数组
+ * @returns {Promise}
+ */
+export function saveQuestionKnowledge(id, data) {
+  return request.put(`/edu/question/${id}/knowledge`, data)
+}

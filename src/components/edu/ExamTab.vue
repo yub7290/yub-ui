@@ -70,6 +70,10 @@
               <el-col :span="12"><el-form-item label="满分"><el-input-number v-model="formData.totalScore" :min="0" :step="10" style="width:100%"><template #suffix>分</template></el-input-number></el-form-item></el-col>
             </el-row>
             <el-form-item label="及格分"><el-input-number v-model="formData.passScore" :min="0" :max="formData.totalScore" :step="10" style="width:300px"><template #suffix>分</template></el-input-number></el-form-item>
+            <el-row :gutter="20">
+              <el-col :span="12"><el-form-item label="最大参考次数"><el-input-number v-model="formData.maxAttempts" :min="0" :max="99" style="width:100%" /><span style="margin-left:6px;font-size:12px;color:#909399">0 表示不限</span></el-form-item></el-col>
+              <el-col :span="12"><el-form-item label="章节完成率准入(%)"><el-input-number v-model="formData.chapterPassRate" :min="0" :max="100" style="width:100%" /><span style="margin-left:6px;font-size:12px;color:#909399">学员章节完成率达到此值方可参加考试</span></el-form-item></el-col>
+            </el-row>
           </el-form>
         </el-tab-pane>
 
@@ -203,7 +207,8 @@ const formData = reactive({
   title: '', subtitle: '', majorId: null, courseId: null,
   isFinalExam: 0, status: 1, recommended: 0, difficulty: 3,
   duration: 60, totalScore: 100, passScore: 60, questionRangeType: 0,
-  introduction: '', notes: '', examiner: '', logo: ''
+  introduction: '', notes: '', examiner: '', logo: '',
+  maxAttempts: 0, chapterPassRate: 0
 })
 
 const formRules = { title: [{ required: true, message: '请输入试卷标题', trigger: 'blur' }] }
@@ -311,7 +316,8 @@ async function handleOpen() {
         title: d.title || '', subtitle: d.subtitle || '', majorId: d.majorId || null, courseId: d.courseId,
         isFinalExam: d.isFinalExam ?? 0, status: d.status ?? 1, recommended: d.recommended ?? 0, difficulty: d.difficulty ?? 3,
         duration: d.duration ?? 60, totalScore: d.totalScore ?? 100, passScore: d.passScore ?? 60, questionRangeType: d.questionRangeType ?? 0,
-        introduction: d.introduction || '', notes: d.notes || '', examiner: d.examiner || '', logo: d.logo || ''
+        introduction: d.introduction || '', notes: d.notes || '', examiner: d.examiner || '', logo: d.logo || '',
+        maxAttempts: d.maxAttempts ?? 0, chapterPassRate: d.chapterPassRate ?? 0
       })
       for (const tc of d.typeConfigs || []) { 
         const qt = questionTypes.value.find(q => q.value === tc.questionType); 
@@ -355,7 +361,7 @@ async function handleLogoUpload(file) {
 
 function handleAdd() {
   editId.value = null; isEdit.value = false; activeTab.value = 'basic'
-  Object.assign(formData, { title: '', subtitle: '', majorId: null, courseId: props.courseId, isFinalExam: 0, status: 1, recommended: 0, difficulty: 3, duration: 60, totalScore: 100, passScore: 60, questionRangeType: 0, introduction: '', notes: '', examiner: '', logo: '' })
+  Object.assign(formData, { title: '', subtitle: '', majorId: null, courseId: props.courseId, isFinalExam: 0, status: 1, recommended: 0, difficulty: 3, duration: 60, totalScore: 100, passScore: 60, questionRangeType: 0, introduction: '', notes: '', examiner: '', logo: '', maxAttempts: 0, chapterPassRate: 0 })
   for (const qt of questionTypes.value) { qt.count = 0; qt.scorePerQuestion = 0; qt.percent = 0 }
   Object.keys(chapterConfigs).forEach(k => delete chapterConfigs[k])
   loadChapterTree(); dialogVisible.value = true

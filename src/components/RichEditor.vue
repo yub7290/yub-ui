@@ -36,8 +36,6 @@ const defaultContent = ref([])
 const toolbarConfig = {
   excludeKeys: [
     'fullScreen',
-    'group-video',
-    'insertVideo',
     'codeBlock',
     'codeSelectLang',
     'todo'
@@ -71,6 +69,32 @@ const editorConfig = {
           }
         } catch (e) {
           ElMessage.error('图片上传失败: ' + (e.message || '网络错误'))
+        }
+      }
+    },
+    // 自定义视频上传
+    uploadVideo: {
+      // 最多上传文件数量
+      maxNumberOfFiles: 1,
+      // 单个文件大小限制 500MB
+      maxFileSize: 500 * 1024 * 1024,
+      // 允许的文件类型
+      allowedFileTypes: ['video/*'],
+      // 自定义上传
+      async customUpload(file, insertFn) {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('directory', 'edu/editor')
+        try {
+          const { default: request } = await import('@/utils/request')
+          const res = await request.post('/edu/upload/video', formData)
+          if (res.code === 200 && res.data) {
+            insertFn(res.data)
+          } else {
+            ElMessage.error('视频上传失败: ' + (res.message || '未知错误'))
+          }
+        } catch (e) {
+          ElMessage.error('视频上传失败: ' + (e.message || '网络错误'))
         }
       }
     }

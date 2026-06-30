@@ -92,14 +92,6 @@
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleShowOverview(row.id)">综述</el-button>
             <el-button link type="primary" size="small" @click="handleEdit(row.id)">编辑</el-button>
-            <el-button
-              link
-              :type="row.recommended === 1 ? 'warning' : 'primary'"
-              size="small"
-              @click="handleSetRecommended(row)"
-            >
-              {{ row.recommended === 1 ? '取消推荐' : '推荐' }}
-            </el-button>
             <el-button link type="danger" size="small" @click="handleDelete(row.id)">删除</el-button>
           </template>
         </el-table-column>

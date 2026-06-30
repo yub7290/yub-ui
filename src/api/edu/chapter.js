@@ -49,3 +49,24 @@ export function updateChapter(data) {
 export function deleteChapter(id) {
   return request.delete(`/edu/chapter/${id}`)
 }
+
+/**
+ * 获取章节已关联知识点 ID 列表
+ *
+ * @param {number} id 章节ID
+ * @returns {Promise}
+ */
+export function getChapterKnowledgeIds(id) {
+  return request.get(`/edu/chapter/${id}/knowledge`)
+}
+
+/**
+ * 保存章节关联知识点
+ *
+ * @param {number} id 章节ID
+ * @param {number[]} data 知识点ID数组
+ * @returns {Promise}
+ */
+export function saveChapterKnowledge(id, data) {
+  return request.put(`/edu/chapter/${id}/knowledge`, data)
+}

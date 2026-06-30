@@ -23,3 +23,14 @@ export function deleteKnowledge(id) {
 export function getKnowledgeListByCategory(categoryId) {
   return request.get(`/edu/knowledge/point/list-by-category/${categoryId}`)
 }
+
+/**
+ * 按课程查询知识点列表（可选按分类筛选）
+ *
+ * @param {number} courseId 课程ID
+ * @param {object} params 查询参数（categoryId 可选）
+ * @returns {Promise}
+ */
+export function getKnowledgeListByCourse(courseId, params = {}) {
+  return request.get(`/edu/knowledge/point/list-by-course/${courseId}`, { params })
+}

@@ -5,7 +5,7 @@ import router from '@/router'
 
 const service = axios.create({
   baseURL: '/api',
-  timeout: 30000
+  timeout: 120000
 })
 
 let isRefreshing = false
@@ -76,7 +76,9 @@ service.interceptors.response.use(
       // 防止重试死循环（最多1次）
       if (originalRequest._retry) {
         clearToken()
-        router.push('/login')
+        ElMessage.error('登录已失效，请重新登录')
+        const currentPath = router.currentRoute?.value?.fullPath || '/'
+        router.push('/login?redirect=' + encodeURIComponent(currentPath))
         return Promise.reject(error)
       }
       if (isRefreshing) {
@@ -87,7 +89,9 @@ service.interceptors.response.use(
       const refreshToken = getRefreshToken()
       if (!refreshToken) {
         clearToken()
-        router.push('/login')
+        ElMessage.error('登录已失效，请重新登录')
+        const currentPath = router.currentRoute?.value?.fullPath || '/'
+        router.push('/login?redirect=' + encodeURIComponent(currentPath))
         return Promise.reject(error)
       }
       try {
@@ -104,7 +108,9 @@ service.interceptors.response.use(
       } catch (e) {
         clearToken()
         processPendingRequests(null)
-        router.push('/login')
+        ElMessage.error('登录已失效，请重新登录')
+        const currentPath = router.currentRoute?.value?.fullPath || '/'
+        router.push('/login?redirect=' + encodeURIComponent(currentPath))
         return Promise.reject(e)
       } finally {
         isRefreshing = false
