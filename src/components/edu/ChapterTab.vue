@@ -123,6 +123,34 @@
             <el-form-item label="图文资料">
               <RichEditor v-model="formData.contentText" />
             </el-form-item>
+            <el-form-item label="章节视频">
+              <div class="chapter-video-field">
+                <el-upload
+                  drag
+                  multiple
+                  :show-file-list="false"
+                  :before-upload="handleVideoUpload"
+                  accept="video/*"
+                  :disabled="videoUploading"
+                >
+                  <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
+                  <div class="el-upload__text">将视频拖到此处，或<em>点击上传</em></div>
+                  <template #tip>
+                    <div class="el-upload__tip">可上传多个视频，每个视频不超过 500MB，仅用于 APP 章节学习播放</div>
+                  </template>
+                </el-upload>
+                <div v-if="formData.videoList.length" class="video-list">
+                  <div v-for="(video, index) in formData.videoList" :key="video.videoUrl || index" class="video-item">
+                    <div class="video-main">
+                      <el-icon><VideoPlay /></el-icon>
+                      <span class="video-name">{{ video.videoName || `视频${index + 1}` }}</span>
+                      <span class="video-size" v-if="video.fileSize">{{ formatFileSize(video.fileSize) }}</span>
+                    </div>
+                    <el-button link type="danger" size="small" @click="removeVideo(index)">移除</el-button>
+                  </div>
+                </div>
+              </div>
+            </el-form-item>
             <el-form-item>
               <template #label>
                 直播
@@ -166,8 +194,9 @@
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import { getChapterTree, getChapterDetail, createChapter, updateChapter, deleteChapter, getChapterKnowledgeIds, saveChapterKnowledge } from '@/api/edu/chapter'
+import { uploadVideo } from '@/api/edu/upload'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, InfoFilled } from '@element-plus/icons-vue'
+import { Plus, InfoFilled, UploadFilled, VideoPlay } from '@element-plus/icons-vue'
 import RichEditor from '@/components/RichEditor.vue'
 import KnowledgePicker from '@/components/edu/KnowledgePicker.vue'
 
@@ -182,6 +211,7 @@ const treeData = ref([])
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
+const videoUploading = ref(false)
 const editId = ref(null)
 const formRef = ref(null)
 const disableParentSelect = ref(false)
@@ -198,7 +228,8 @@ const formData = reactive({
   isLive: 0,
   liveStartTime: null,
   liveDuration: null,
-  knowledgePointIds: []
+  knowledgePointIds: [],
+  videoList: []
 })
 
 const formRules = {
@@ -244,6 +275,11 @@ async function handleEdit(id) {
     formData.isLive = data.isLive ?? 0
     formData.liveStartTime = data.liveStartTime || null
     formData.liveDuration = data.liveDuration || null
+    formData.videoList = (data.videoList || []).map((item, index) => ({
+      videoName: item.videoName || `视频${index + 1}`,
+      videoUrl: item.videoUrl,
+      fileSize: item.fileSize || null
+    })).filter(item => item.videoUrl)
     disableParentSelect.value = true
 
     // 加载已关联知识点
@@ -281,11 +317,49 @@ function resetForm() {
   formData.isLive = 0
   formData.liveStartTime = null
   formData.liveDuration = null
+  formData.videoList = []
   formData.knowledgePointIds = []
   knowledgeLoadFailed.value = false
   isEdit.value = false
   disableParentSelect.value = false
   if (formRef.value) formRef.value.resetFields()
+}
+
+async function handleVideoUpload(file) {
+  const maxSize = 500 * 1024 * 1024
+  if (!file.type?.startsWith('video/')) {
+    ElMessage.error('只能上传视频文件')
+    return false
+  }
+  if (file.size > maxSize) {
+    ElMessage.error('单个视频不能超过 500MB')
+    return false
+  }
+  videoUploading.value = true
+  try {
+    const res = await uploadVideo(file, 'edu/chapter/videos')
+    formData.videoList.push({
+      videoName: file.name,
+      videoUrl: res.data,
+      fileSize: file.size
+    })
+    ElMessage.success('视频上传成功')
+  } catch {
+    // request interceptor already shows the error message
+  } finally {
+    videoUploading.value = false
+  }
+  return false
+}
+
+function removeVideo(index) {
+  formData.videoList.splice(index, 1)
+}
+
+function formatFileSize(size) {
+  if (!size) return ''
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)}KB`
+  return `${(size / 1024 / 1024).toFixed(1)}MB`
 }
 
 async function handleSubmit() {
@@ -304,7 +378,13 @@ async function handleSubmit() {
       contentText: formData.contentText || null,
       isLive: formData.isLive,
       liveStartTime: formData.liveStartTime,
-      liveDuration: formData.liveDuration
+      liveDuration: formData.liveDuration,
+      videoList: formData.videoList.map((item, index) => ({
+        videoName: item.videoName || `视频${index + 1}`,
+        videoUrl: item.videoUrl,
+        fileSize: item.fileSize || null,
+        sort: index
+      }))
     }
 
     let chapterId
@@ -361,4 +441,11 @@ async function handleDelete(id) {
 <style scoped>
 .chapter-tab { min-height: 300px; }
 .tab-toolbar { margin-bottom: 12px; }
+.chapter-video-field { width: 100%; }
+.video-list { margin-top: 10px; border: 1px solid #e5e7eb; border-radius: 4px; overflow: hidden; }
+.video-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-bottom: 1px solid #edf0f5; background: #fff; }
+.video-item:last-child { border-bottom: none; }
+.video-main { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.video-name { max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #303133; font-size: 13px; }
+.video-size { color: #909399; font-size: 12px; }
 </style>

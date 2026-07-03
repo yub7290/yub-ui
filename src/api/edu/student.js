@@ -90,3 +90,23 @@ export function batchDisableStudents(ids) {
 export function resetStudentPassword(id) {
   return request.put(`/edu/student/${id}/reset-password`)
 }
+
+export function getStudentGrowthHome(id) {
+  return request.get(`/edu/student/${id}/growth/home`)
+}
+
+export function getStudentGrowthWeekReports(id) {
+  return request.get(`/edu/student/${id}/growth/week-reports`)
+}
+
+export function getStudentGrowthSubjects(id) {
+  return request.get(`/edu/student/${id}/growth/subjects`)
+}
+
+export function getStudentGrowthSubjectGraph(id, subject) {
+  return request.get(`/edu/student/${id}/growth/subject-graph`, { params: { subject } })
+}
+
+export function getStudentGrowthWeekPlan(id, weekIndex = 0) {
+  return request.get(`/edu/student/${id}/growth/week-plan`, { params: { weekIndex } })
+}

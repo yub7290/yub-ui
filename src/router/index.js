@@ -101,6 +101,12 @@ const routes = [
         meta: { title: '教师职称', icon: 'Collection' }
       },
       {
+        path: 'edu/study-card',
+        name: 'EduStudyCard',
+        component: () => import('@/views/edu/study-card/index.vue'),
+        meta: { title: '学习卡', icon: 'Ticket' }
+      },
+      {
         path: 'edu/announcement',
         name: 'EduAnnouncement',
         component: () => import('@/views/edu/announcement/index.vue'),
@@ -111,6 +117,12 @@ const routes = [
         name: 'EduStudent',
         component: () => import('@/views/edu/student/index.vue'),
         meta: { title: '学员信息', icon: 'UserFilled' }
+      },
+      {
+        path: 'edu/student/:id/growth',
+        name: 'EduStudentGrowth',
+        component: () => import('@/views/edu/student/growth.vue'),
+        meta: { title: '成长档案', icon: 'TrendCharts' }
       },
       {
         path: 'edu/certificate',
@@ -149,6 +161,31 @@ const routes = [
         name: 'EduRecycleExam',
         component: () => import('@/views/edu/recycle/exam.vue'),
         meta: { title: '试卷回收', icon: 'Delete' }
+      },
+      // 教育模块 - 积分管理
+      {
+        path: 'edu/points/setting',
+        name: 'EduPointsSetting',
+        component: () => import('@/views/edu/points-setting/index.vue'),
+        meta: { title: '积分设置', icon: 'Setting' }
+      },
+      {
+        path: 'edu/points-product',
+        name: 'EduPointsProduct',
+        component: () => import('@/views/edu/points-product/index.vue'),
+        meta: { title: '积分商店', icon: 'ShoppingCart' }
+      },
+      {
+        path: 'edu/points-order',
+        name: 'EduPointsOrder',
+        component: () => import('@/views/edu/points-order/index.vue'),
+        meta: { title: '积分订单', icon: 'List' }
+      },
+      {
+        path: 'edu/points-verify',
+        name: 'EduPointsVerify',
+        component: () => import('@/views/edu/points-order/verify.vue'),
+        meta: { title: '兑换核销', icon: 'Check' }
       }
     ]
   }

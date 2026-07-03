@@ -173,12 +173,18 @@ const menus = computed(() => userStore.menus)
   padding: 4px 0;
 }
 
-.sidebar-menu :deep(.el-menu--inline .el-menu-item) {
-  margin: 1px 4px;
-  padding-left: 36px !important;
+/* el-menu--inline 直接子菜单项（与 el-sub-menu 同级，如教务下的学习卡） */
+.sidebar-menu :deep(.el-menu--inline > .el-menu-item) {
+  margin: 2px 8px;
+  padding-left: 12px !important;
   height: 40px;
   line-height: 40px;
   font-size: 13px;
+}
+
+/* el-menu--inline 内嵌套的子菜单项（如教师管理下的教师信息） */
+.sidebar-menu :deep(.el-menu--inline .el-sub-menu .el-menu--inline .el-menu-item) {
+  padding-left: 36px !important;
 }
 
 /* 图标样式 */

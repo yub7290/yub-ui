@@ -85,8 +85,9 @@
             />
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="230" align="center" fixed="right">
+        <el-table-column label="操作" width="300" align="center" fixed="right">
           <template #default="{ row }">
+            <el-button link type="success" size="small" @click="handleGrowth(row.id)">成长档案</el-button>
             <el-button link type="primary" size="small" @click="handleEdit(row.id)">编辑</el-button>
             <el-button link type="primary" size="small" @click="handleResetPassword(row.id)">重置密码</el-button>
             <el-button link type="danger" size="small" @click="handleDelete(row.id)">删除</el-button>
@@ -130,6 +131,7 @@
 
 <script setup>
 import dayjs from 'dayjs'
+import { useRouter } from 'vue-router'
 import { Plus, Delete, FolderOpened, Lock } from '@element-plus/icons-vue'
 import StudentFormDialog from './StudentFormDialog.vue'
 import { useStudentManagement } from '@/composables/edu/useStudentManagement'
@@ -142,9 +144,15 @@ const {
   handleResetPassword, handleSelectionChange
 } = useStudentManagement()
 
+const router = useRouter()
+
 /** 格式化日期时间，去掉 T */
 function formatDateTime(date) {
   return date ? dayjs(date).format('YYYY-MM-DD HH:mm:ss') : '-'
+}
+
+function handleGrowth(id) {
+  router.push(`/edu/student/${id}/growth`)
 }
 </script>
 
