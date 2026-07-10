@@ -1,15 +1,26 @@
 <template>
   <div class="knowledge-page">
-    <!-- 左右分屏 -->
+    <!-- 搜索区 -->
+    <el-card class="search-card" shadow="never">
+      <div class="card-accent"></div>
+      <el-form inline>
+        <el-form-item label="知识点标题">
+          <el-input v-model="searchForm.kpTitle" placeholder="请输入知识点标题" clearable @keyup.enter="handleQuery" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="handleQuery">查询</el-button>
+          <el-button @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
+    <!-- 主体内容区 -->
     <div class="split-layout">
       <!-- 左侧：分类树 -->
-      <div class="left-panel">
-        <div class="panel-header">
-          <span class="panel-title">知识点分类</span>
-          <el-button size="small" type="primary" @click="showCategoryDialog(null)">新增</el-button>
-        </div>
-        <div class="panel-search">
-          <el-input v-model="catSearch" placeholder="搜索分类" clearable size="small" prefix-icon="Search" />
+      <div class="major-sidebar">
+        <div class="sidebar-title">知识点分类</div>
+        <div class="sidebar-item" :class="{ active: !selectedCategoryId }" @click="onCategoryClick({ id: null, name: '' })">
+          全部知识点
         </div>
         <el-tree ref="treeRef" :data="categoryTree" :props="{ label: 'name', children: 'children' }"
           node-key="id" highlight-current :expand-on-click-node="false" :filter-node-method="filterCatNode"
@@ -27,63 +38,64 @@
       </div>
 
       <!-- 右侧：知识点列表 -->
-      <div class="right-panel">
-        <div class="table-header">
-          <div class="table-title">
-            知识点
-            <span v-if="selectedCategoryName" class="title-sub">— {{ selectedCategoryName }}</span>
+      <div class="course-list">
+        <div class="table-wrapper">
+          <div class="table-header">
+            <div class="table-title">
+              知识点列表
+              <span v-if="selectedCategoryName" class="title-sub">— {{ selectedCategoryName }}</span>
+            </div>
+            <div class="table-actions">
+              <el-button type="primary" :disabled="!selectedCategoryId" @click="showKnowledgeDialog(null)">
+                <el-icon><Plus /></el-icon>新增
+              </el-button>
+            </div>
           </div>
-          <div class="table-actions">
-            <el-input v-model="searchForm.kpTitle" placeholder="搜索知识点" clearable size="small" style="width:180px" @keyup.enter="handleQuery" suffix-icon="Search" />
-            <el-button type="primary" size="small" :disabled="!selectedCategoryId" @click="showKnowledgeDialog(null)">
-              <el-icon><Plus /></el-icon>新增
-            </el-button>
-          </div>
+
+          <el-table :data="tableData" v-loading="loading" border stripe style="width:100%"
+            :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: 600 }">
+            <el-table-column type="index" label="#" width="50" align="center" />
+            <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
+            <el-table-column prop="status" label="状态" width="80" align="center">
+              <template #default="{ row }">
+                <el-switch :model-value="row.status === 1" size="small" disabled />
+              </template>
+            </el-table-column>
+            <el-table-column label="创建时间" width="170">
+              <template #default="{ row }">{{ row.createTime || '-' }}</template>
+            </el-table-column>
+            <el-table-column label="操作" width="180" align="center" fixed="right">
+              <template #default="{ row }">
+                <el-button link type="primary" size="small" @click="showKnowledgeDialog(row.id)">编辑</el-button>
+                <el-button link type="danger" size="small" @click="handleDeleteKnowledge(row.id)">删除</el-button>
+              </template>
+            </el-table-column>
+            <template #empty>
+              <div class="empty-state">
+                <el-icon :size="56" color="#cbd5e1"><FolderOpened /></el-icon>
+                <p>{{ selectedCategoryId ? '暂无知识点' : '请先在左侧选择分类' }}</p>
+              </div>
+            </template>
+          </el-table>
         </div>
 
-        <el-table :data="tableData" v-loading="loading" border stripe style="width:100%"
-          :header-cell-style="{ background: '#f8fafc', color: '#475569', fontWeight: 600 }">
-          <el-table-column type="index" label="#" width="50" align="center" />
-          <el-table-column prop="title" label="标题" min-width="200" />
-          <el-table-column prop="status" label="状态" width="80" align="center">
-            <template #default="{ row }">
-              <el-switch :model-value="row.status === 1" size="small" active-color="#38daa6" inactive-color="#cbd5e1" disabled />
-            </template>
-          </el-table-column>
-          <el-table-column label="创建时间" width="170">
-            <template #default="{ row }">{{ row.createTime || '-' }}</template>
-          </el-table-column>
-          <el-table-column label="操作" width="180" align="center" fixed="right">
-            <template #default="{ row }">
-              <el-button link type="primary" size="small" @click="showKnowledgeDialog(row.id)">编辑</el-button>
-              <el-button link type="danger" size="small" @click="handleDeleteKnowledge(row.id)">删除</el-button>
-            </template>
-          </el-table-column>
-          <template #empty>
-            <div class="empty-state">
-              <el-icon :size="56" color="#cbd5e1"><FolderOpened /></el-icon>
-              <p>{{ selectedCategoryId ? '暂无知识点' : '请先在左侧选择分类' }}</p>
-            </div>
-          </template>
-        </el-table>
-      </div>
-    </div>
-
-    <!-- 分页栏（整页最下方） -->
-    <div class="pagination-bar">
-      <div class="pagination-left">
-        <span class="total-text">共 <b>{{ total }}</b> 条数据</span>
-      </div>
-      <div class="pagination-right">
-        <el-pagination v-model:current-page="pageNum" v-model:page-size="pageSize" :total="total"
-          :page-sizes="[10, 20, 50]" :pager-count="5" layout="sizes, prev, pager, next, jumper"
-          background size="small" @size-change="fetchData" @current-change="fetchData" />
+        <!-- 分页栏 -->
+        <div class="pagination-bar" v-if="total > 0">
+          <div class="pagination-left">
+            <span class="total-text">共 <b>{{ total }}</b> 条数据</span>
+          </div>
+          <div class="pagination-right">
+            <el-pagination v-model:current-page="pageNum" v-model:page-size="pageSize" :total="total"
+              :page-sizes="[10, 20, 50]" :pager-count="5" layout="sizes, prev, pager, next, jumper"
+              background @size-change="fetchData" @current-change="fetchData" />
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- 分类编辑弹窗 -->
-    <el-dialog v-model="catDialogVisible" :title="editingCatId ? '编辑分类' : '新增分类'" width="450px"
-      :before-close="() => catDialogVisible = false" destroy-on-close>
+    <YubDialog v-model="catDialogVisible" :title="editingCatId ? '编辑分类' : '新增分类'" width="450px"
+      destroy-on-close>
       <el-form ref="catFormRef" :model="catForm" :rules="catRules" label-width="80px">
         <el-form-item label="上级分类">
           <el-tree-select v-model="catForm.parentId" :data="categoryTree" :props="{ label: 'name', value: 'id' }"
@@ -103,11 +115,11 @@
         <el-button @click="catDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="catSubmitting" @click="submitCategory">确定</el-button>
       </template>
-    </el-dialog>
+    </YubDialog>
 
     <!-- 知识点编辑弹窗 -->
-    <el-dialog v-model="kpDialogVisible" :title="editingKpId ? '编辑知识点' : '新增知识点'" width="750px"
-      :before-close="() => kpDialogVisible = false" @open="onKpDialogOpen" destroy-on-close>
+    <YubDialog v-model="kpDialogVisible" :title="editingKpId ? '编辑知识点' : '新增知识点'" width="750px"
+      destroy-on-close @open="onKpDialogOpen">
       <el-form ref="kpFormRef" :model="kpForm" :rules="kpRules" label-width="80px">
         <el-form-item label="分类" prop="categoryId">
           <el-tree-select v-model="kpForm.categoryId" :data="categoryTree" :props="{ label: 'name', value: 'id' }"
@@ -127,7 +139,7 @@
         <el-button @click="kpDialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="kpSubmitting" @click="submitKnowledge">确定</el-button>
       </template>
-    </el-dialog>
+    </YubDialog>
   </div>
 </template>
 
@@ -137,6 +149,7 @@ import { getCategoryTree, getCategoryDetail, createCategory, updateCategory, del
 import { getKnowledgePage, getKnowledgeDetail, createKnowledge, updateKnowledge, deleteKnowledge } from '@/api/edu/knowledgePoint'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete, FolderOpened, Search } from '@element-plus/icons-vue'
+import YubDialog from '@/components/YubDialog.vue'
 import RichEditor from '@/components/RichEditor.vue'
 
 const catSearch = ref('')
@@ -266,20 +279,8 @@ onMounted(() => { loadCategoryTree() })
 <style scoped>
 @import '@/assets/css/user-management.css';
 
-.knowledge-page {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: calc(100vh - 140px);
-  padding: 0;
-}
-.split-layout {
-  display: flex;
-  gap: 16px;
-  flex: 1;
-  min-height: 0;
-}
-.left-panel {
+/* 左侧面板 — 与课程页面 major-sidebar 完全一致 */
+.major-sidebar {
   width: 260px;
   flex-shrink: 0;
   background: #fff;
@@ -289,7 +290,37 @@ onMounted(() => { loadCategoryTree() })
   flex-direction: column;
   overflow: hidden;
 }
-.right-panel {
+
+.sidebar-title {
+  padding: 16px;
+  font-weight: 600;
+  color: #1a2332;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.sidebar-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  color: #475569;
+  transition: all 0.2s;
+}
+
+.sidebar-item:hover {
+  background: #f1f5f9;
+  color: var(--el-color-primary);
+}
+
+.sidebar-item.active {
+  background: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  font-weight: 600;
+  border-left: 3px solid var(--el-color-primary);
+  padding-left: 13px;
+}
+
+/* 右侧面板 — 与课程页面 course-list 完全一致 */
+.course-list {
   flex: 1;
   background: #fff;
   border-radius: 10px;
@@ -298,34 +329,23 @@ onMounted(() => { loadCategoryTree() })
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 16px;
-  border-bottom: 1px solid #ebeef5;
-  flex-shrink: 0;
-}
-.panel-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1e293b;
-}
+
+/* 标题副文本 */
 .title-sub {
   font-weight: 400;
   font-size: 13px;
   color: #94a3b8;
 }
-.panel-search {
-  padding: 8px 12px;
-  border-bottom: 1px solid #ebeef5;
-}
+
+/* 分类树 */
 .cat-tree {
   padding: 4px 0;
   flex: 1;
   overflow-y: auto;
 }
+
 .tree-node {
   display: flex;
   justify-content: space-between;
@@ -333,6 +353,7 @@ onMounted(() => { loadCategoryTree() })
   width: 100%;
   padding-right: 4px;
 }
+
 .node-label {
   flex: 1;
   overflow: hidden;
@@ -340,12 +361,14 @@ onMounted(() => { loadCategoryTree() })
   white-space: nowrap;
   font-size: 13px;
 }
+
 .node-actions {
   display: none;
   gap: 2px;
   flex-shrink: 0;
 }
+
 .node-actions .el-icon { cursor: pointer; color: #909399; }
-.node-actions .el-icon:hover { color: #38daa6; }
+.node-actions .el-icon:hover { color: var(--el-color-primary); }
 .el-tree-node__content:hover .node-actions { display: inline-flex; }
 </style>

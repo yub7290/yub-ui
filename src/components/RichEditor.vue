@@ -10,7 +10,7 @@
       :defaultConfig="editorConfig"
       :defaultContent="defaultContent"
       mode="default"
-      style="height: 420px; overflow-y: auto;"
+      :style="{ height: height, overflowY: 'auto' }"
       @onCreated="onCreated"
       @onChange="onChange"
       @onDestroyed="onDestroyed"
@@ -24,7 +24,9 @@ import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({
-  modelValue: { type: String, default: '' }
+  modelValue: { type: String, default: '' },
+  /** 编辑器高度 */
+  height: { type: String, default: '320px' }
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -37,9 +39,7 @@ const toolbarConfig = {
     'fullScreen',
     'codeBlock',
     'codeSelectLang',
-    'todo',
-    'uploadVideo',
-    'insertVideo'
+    'todo'
   ]
 }
 

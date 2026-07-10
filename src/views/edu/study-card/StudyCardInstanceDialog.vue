@@ -1,11 +1,10 @@
 <template>
-  <el-dialog
+  <YubDialog
     v-model="visible"
     :title="dialogTitle"
     width="900px"
-    :before-close="() => visible = false"
-    @open="handleOpen"
     destroy-on-close
+    @open="handleOpen"
   >
     <!-- 工具栏 -->
     <div class="instance-toolbar">
@@ -96,12 +95,13 @@
         />
       </div>
     </div>
-  </el-dialog>
+  </YubDialog>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
+import YubDialog from '@/components/YubDialog.vue'
 import { getInstancePage, batchGenerateInstances, rollbackInstance, toggleInstanceStatus } from '@/api/edu/studyCard'
 import { ElMessage, ElMessageBox } from 'element-plus'
 

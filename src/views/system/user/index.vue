@@ -61,8 +61,8 @@
               :loading="row._statusLoading"
               @change="(val) => handleStatusChange(row, val)"
               size="small"
-              active-color="#38daa6"
-              inactive-color="#cbd5e1"
+             
+             
             />
           </template>
         </el-table-column>

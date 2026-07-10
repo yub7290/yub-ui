@@ -94,7 +94,7 @@ export function useUserManagement() {
 
   async function handleResetPwd(id) {
     try {
-      await ElMessageBox.confirm('确定要将密码重置为默认密码（admin123）吗？', '重置密码', {
+      await ElMessageBox.confirm('确定要将密码重置为默认密码（123456）吗？', '重置密码', {
         type: 'warning',
         confirmButtonText: '确定',
         cancelButtonText: '取消'

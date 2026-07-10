@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { getAccessToken, getRole, setRole } from '@/utils/auth'
+import { setTheme } from '@/utils/theme'
 
 const routes = [
   {
@@ -9,15 +11,83 @@ const routes = [
     meta: { requiresAuth: false }
   },
   {
+    path: '/teacher/login',
+    name: 'TeacherLogin',
+    component: () => import('@/views/login/TeacherLogin.vue'),
+    meta: { requiresAuth: false }
+  },
+  // 教师端路由 — 使用独立布局
+  {
+    path: '/teacher',
+    component: () => import('@/layout/teacher/TeacherLayout.vue'),
+    meta: { requiresAuth: true, userType: 'TEACHER' },
+    children: [
+      {
+        path: '',
+        redirect: '/teacher/home'
+      },
+      {
+        path: 'home',
+        name: 'TeacherHome',
+        component: () => import('@/layout/teacher/TeacherHome.vue'),
+        meta: { title: '工作台' }
+      },
+      {
+        path: 'course',
+        name: 'TeacherCourse',
+        component: () => import('@/views/teacher/course/index.vue'),
+        meta: { title: '我的课程' }
+      },
+      {
+        path: 'student',
+        name: 'TeacherStudent',
+        component: () => import('@/views/teacher/student/index.vue'),
+        meta: { title: '我的学生' }
+      },
+      {
+        path: 'homework',
+        name: 'TeacherHomework',
+        component: () => import('@/views/teacher/homework/index.vue'),
+        meta: { title: '作业批改' }
+      },
+      {
+        path: 'homework/:id',
+        name: 'TeacherHomeworkDetail',
+        component: () => import('@/views/edu/homework/detail.vue'),
+        meta: { title: '批改详情' }
+      },
+      {
+        path: 'announcement',
+        name: 'TeacherAnnouncement',
+        component: () => import('@/views/teacher/announcement/index.vue'),
+        meta: { title: '课程公告' }
+      },
+      {
+        path: 'exam',
+        name: 'TeacherExam',
+        component: () => import('@/views/teacher/exam/index.vue'),
+        meta: { title: '考试管理' }
+      },
+      {
+        path: 'profile',
+        name: 'TeacherProfile',
+        component: () => import('@/views/teacher/profile/index.vue'),
+        meta: { title: '个人中心' }
+      }
+    ]
+  },
+  // 管理端路由 — 使用侧边栏布局
+  {
     path: '/',
     component: () => import('@/layout/Layout.vue'),
     redirect: '/dashboard',
+    meta: { requiresAuth: true, userType: 'ADMIN' },
     children: [
       {
         path: 'dashboard',
         name: 'Dashboard',
         component: () => import('@/views/dashboard/Dashboard.vue'),
-        meta: { title: '仪表盘' }
+        meta: { title: '仪表盘', hideTagsView: true }
       },
       {
         path: 'system/user',
@@ -55,14 +125,12 @@ const routes = [
         component: () => import('@/views/system/banner/index.vue'),
         meta: { title: 'Banner管理', icon: 'PictureFilled' }
       },
-      // 教育模块 - 学习内容目录（重定向到课程）
       {
         path: 'edu/content',
         name: 'EduContent',
         redirect: '/edu/course',
         meta: { title: '学习内容', icon: 'Notebook' }
       },
-      // 教育模块 - 专业管理
       {
         path: 'edu/major',
         name: 'EduMajor',
@@ -87,7 +155,6 @@ const routes = [
         component: () => import('@/views/edu/knowledge/index.vue'),
         meta: { title: '知识点', icon: 'Reading' }
       },
-      // 教育模块 - 教师管理
       {
         path: 'edu/teacher',
         name: 'EduTeacher',
@@ -113,6 +180,30 @@ const routes = [
         meta: { title: '课程公告', icon: 'Message' }
       },
       {
+        path: 'edu/notice',
+        name: 'EduNotice',
+        component: () => import('@/views/edu/notice/index.vue'),
+        meta: { title: '通知', icon: 'Bell' }
+      },
+      {
+        path: 'edu/news',
+        name: 'EduNews',
+        component: () => import('@/views/edu/news/index.vue'),
+        meta: { title: '新闻资讯', icon: 'Memo' }
+      },
+      {
+        path: 'edu/news/category',
+        name: 'EduNewsCategory',
+        component: () => import('@/views/edu/newsCategory/index.vue'),
+        meta: { title: '资讯分类', icon: 'Collection' }
+      },
+      {
+        path: 'edu/cache',
+        name: 'EduCache',
+        component: () => import('@/views/edu/cache/index.vue'),
+        meta: { title: '缓存管理', icon: 'Cpu' }
+      },
+      {
         path: 'edu/student',
         name: 'EduStudent',
         component: () => import('@/views/edu/student/index.vue'),
@@ -125,16 +216,20 @@ const routes = [
         meta: { title: '成长档案', icon: 'TrendCharts' }
       },
       {
+        path: 'edu/student-group',
+        name: 'EduStudentGroup',
+        component: () => import('@/views/edu/studentGroup/index.vue'),
+        meta: { title: '学员组', icon: 'UserFilled' }
+      },
+      {
         path: 'edu/certificate',
         name: 'EduCertificate',
-        // TODO: implement certificate feature - placeholder for now
         component: () => import('@/views/placeholder/index.vue'),
         meta: { title: '学习证明', icon: 'Trophy' }
       },
       {
         path: 'edu/weight',
         name: 'EduWeight',
-        // TODO: implement weight feature - placeholder for now
         component: () => import('@/views/placeholder/index.vue'),
         meta: { title: '学习权重', icon: 'ScaleToOriginal' }
       },
@@ -162,7 +257,6 @@ const routes = [
         component: () => import('@/views/edu/recycle/exam.vue'),
         meta: { title: '试卷回收', icon: 'Delete' }
       },
-      // 教育模块 - 积分管理
       {
         path: 'edu/points/setting',
         name: 'EduPointsSetting',
@@ -186,6 +280,36 @@ const routes = [
         name: 'EduPointsVerify',
         component: () => import('@/views/edu/points-order/verify.vue'),
         meta: { title: '兑换核销', icon: 'Check' }
+      },
+      {
+        path: 'edu/fund',
+        name: 'EduFund',
+        component: () => import('@/views/edu/fund/index.vue'),
+        meta: { title: '资金管理', icon: 'Wallet' }
+      },
+      {
+        path: 'edu/fund/transaction',
+        name: 'EduTransaction',
+        component: () => import('@/views/edu/fund/transaction.vue'),
+        meta: { title: '交易流水', icon: 'List' }
+      },
+      {
+        path: 'edu/fund/course-order',
+        name: 'EduCourseOrder',
+        component: () => import('@/views/edu/fund/course-order.vue'),
+        meta: { title: '课程订单', icon: 'ShoppingCart' }
+      },
+      {
+        path: 'edu/homework',
+        name: 'EduHomework',
+        component: () => import('@/views/edu/homework/index.vue'),
+        meta: { title: '作业批改', icon: 'Edit' }
+      },
+      {
+        path: 'edu/homework/:id',
+        name: 'EduHomeworkDetail',
+        component: () => import('@/views/edu/homework/detail.vue'),
+        meta: { title: '批改详情', icon: 'Edit', activeMenu: '/edu/homework' }
       }
     ]
   }
@@ -196,26 +320,48 @@ const router = createRouter({
   routes
 })
 
+/**
+ * 判断目标路由是否为教师端路由
+ */
+function isTeacherRoute(path) {
+  return path.startsWith('/teacher') && !path.startsWith('/teacher/login')
+}
+
 router.beforeEach(async (to, from, next) => {
   const store = useUserStore()
-  if (to.path === '/login') {
+  const publicPages = ['/login', '/teacher/login']
+
+  if (publicPages.includes(to.path)) {
     if (store.token) {
-      next('/')
+      const activeRole = store.activeRole
+      next(activeRole === 'TEACHER' ? '/teacher/home' : '/')
     } else {
       next()
     }
     return
   }
-  if (!store.token) {
-    next({ path: '/login', query: { redirect: to.fullPath } })
+
+  const needTeacher = isTeacherRoute(to.path)
+  const checkRole = needTeacher ? 'TEACHER' : 'ADMIN'
+  setTheme(checkRole)
+  // 单会话单身份：把当前导航的目标身份写入会话，作为本标签页的身份边界
+  setRole(checkRole)
+  // 校验：本会话既要存在 token，身份还必须与目标路由匹配
+  const hasToken = !!getAccessToken() && getRole() === checkRole
+
+  if (!hasToken) {
+    const loginPath = needTeacher ? '/teacher/login' : '/login'
+    next({ path: loginPath, query: { redirect: to.fullPath } })
     return
   }
-  // 刷新页面后重新获取用户信息（恢复菜单树）
+
+  // 切换角色或刷新页面后：先同步 UI 活跃角色，再按角色加载（已缓存则跳过）
+  store.setActiveRoleState(checkRole)
   if (!store.userInfo) {
     try {
-      await store.getUserInfo()
+      await store.ensureUserInfo(checkRole)
     } catch {
-      next({ path: '/login' })
+      next({ path: needTeacher ? '/teacher/login' : '/login' })
       return
     }
   }

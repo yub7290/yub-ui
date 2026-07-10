@@ -59,7 +59,7 @@
         </el-table-column>
         <el-table-column prop="status" label="使用" width="80" align="center">
           <template #default="{ row }">
-            <el-switch :model-value="row.status === 1" size="small" active-color="#38daa6" inactive-color="#cbd5e1"
+            <el-switch :model-value="row.status === 1" size="small"
               @change="(v) => handleToggle(row, v)" />
           </template>
         </el-table-column>
@@ -76,7 +76,13 @@
     </div>
 
     <!-- 新增/编辑价格方案对话框 -->
-    <el-dialog v-model="dialogVisible" :title="editPlan ? '修改价格方案' : '新增价格方案'" width="420px" :close-on-click-modal="false" @open="handleDialogOpen">
+    <YubDialog
+      :model-value="dialogVisible"
+      :title="editPlan ? '修改价格方案' : '新增价格方案'"
+      width="420px"
+      @update:model-value="dialogVisible = $event"
+      @open="handleDialogOpen"
+    >
       <el-form ref="formRef" :model="planForm" :rules="planRules" label-width="100px">
         <el-form-item label="学习月数" prop="months">
           <el-input-number v-model="planForm.months" :min="1" :max="120" style="width:100%" />
@@ -95,7 +101,7 @@
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
       </template>
-    </el-dialog>
+    </YubDialog>
   </div>
 </template>
 
@@ -104,6 +110,7 @@ import { ref, reactive, watch } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
 import { getPricePlanList, createPricePlan, updatePricePlan, deletePricePlan } from '@/api/edu/pricePlan'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import YubDialog from '@/components/YubDialog.vue'
 
 const props = defineProps({
   courseId: { type: Number, default: null },

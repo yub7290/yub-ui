@@ -1,0 +1,265 @@
+/* ============================================================
+   教师端设计语言 (Teacher Design Language)
+   高级深绿 + 中性留白 + 去渐变 · 简约大气
+   仅作用于 .teacher-main 作用域，不影响管理端
+   ============================================================ */
+
+.teacher-main {
+  color: var(--t-text-2, #3d4843);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+.teacher-main *,
+.teacher-main *::before,
+.teacher-main *::after {
+  box-sizing: border-box;
+}
+
+/* ---------- 容器 ---------- */
+.t-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ---------- 卡片 ---------- */
+.t-card {
+  background: var(--t-surface, #fff);
+  border: 1px solid var(--t-border, #ECEFEE);
+  border-radius: var(--t-radius, 14px);
+  box-shadow: var(--t-shadow, 0 1px 3px rgba(16, 24, 20, 0.04), 0 8px 24px rgba(16, 24, 20, 0.05));
+}
+
+.t-card__body {
+  padding: 20px 22px;
+}
+
+.t-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--t-border, #ECEFEE);
+}
+
+.t-card__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--t-text, #16201c);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.t-card__title::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--t-accent, #0c8e68);
+}
+
+/* ---------- 区块标题 ---------- */
+.t-section-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--t-text, #16201c);
+  margin: 4px 0 0;
+  letter-spacing: 0.2px;
+}
+
+.t-muted {
+  color: var(--t-text-muted, #8a958f);
+}
+
+/* ---------- 工具栏 / 搜索区 ---------- */
+.t-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--t-surface, #fff);
+  border: 1px solid var(--t-border, #ECEFEE);
+  border-radius: var(--t-radius, 14px);
+}
+
+.t-toolbar__filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.t-toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ---------- 表格 ---------- */
+.teacher-main .el-table {
+  --el-table-border-color: var(--t-border, #ECEFEE);
+  --el-table-header-bg-color: var(--t-surface-2, #FBFCFB);
+  border-radius: var(--t-radius, 14px);
+  overflow: hidden;
+}
+
+.teacher-main .el-table th.el-table__cell {
+  background: var(--t-surface-2, #FBFCFB);
+  color: var(--t-text-muted, #8a958f);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.teacher-main .el-table td.el-table__cell {
+  color: var(--t-text-2, #3d4843);
+}
+
+.teacher-main .el-table .el-table__row:hover > td.el-table__cell {
+  background: var(--t-accent-soft, #EEF8F3);
+}
+
+/* ---------- 分页 ---------- */
+.t-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 4px 2px;
+}
+
+.t-pagination__total {
+  font-size: 13px;
+  color: var(--t-text-muted, #8a958f);
+}
+
+.t-pagination__total b {
+  color: var(--t-text, #16201c);
+  font-weight: 600;
+}
+
+/* ---------- 空状态 ---------- */
+.t-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 56px 0;
+  color: var(--t-text-faint, #AEB8B2);
+}
+
+.t-empty__text {
+  font-size: 13px;
+  margin: 0;
+}
+
+/* ---------- 状态徽标 (通用) ---------- */
+.t-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.t-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.t-badge--green { color: #0A7355; background: #E6F5EE; }
+.t-badge--amber { color: #B26A00; background: #FCF3E3; }
+.t-badge--blue { color: #2563EB; background: #E8F0FE; }
+.t-badge--gray { color: #6B7280; background: #F1F2F4; }
+.t-badge--red { color: #C0392B; background: #FCEAE8; }
+
+/* ---------- 头像底色 (克制使用主色) ---------- */
+.t-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--t-accent-soft, #EEF8F3);
+  color: var(--t-accent-strong, #0A7355);
+  font-weight: 600;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ---------- 统一输入框观感 ---------- */
+.teacher-main .el-input__wrapper,
+.teacher-main .el-textarea__inner,
+.teacher-main .el-select__wrapper {
+  border-radius: var(--t-radius-sm, 10px);
+  box-shadow: 0 0 0 1px var(--t-border-strong, #E0E4E2) inset;
+  transition: box-shadow 0.18s ease;
+}
+
+.teacher-main .el-input__wrapper:hover,
+.teacher-main .el-select__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--t-text-faint, #AEB8B2) inset;
+}
+
+.teacher-main .el-input__wrapper.is-focus,
+.teacher-main .el-select__wrapper.is-focused {
+  box-shadow: 0 0 0 1px var(--t-accent, #0c8e68) inset,
+    0 0 0 3px rgba(12, 142, 104, 0.12);
+}
+
+/* ---------- 主按钮微调 (更克制) ---------- */
+.teacher-main .el-button--primary {
+  --el-button-bg-color: var(--t-accent, #0c8e68);
+  --el-button-border-color: var(--t-accent, #0c8e68);
+  --el-button-hover-bg-color: #0a7d5c;
+  --el-button-hover-border-color: #0a7d5c;
+  --el-button-active-bg-color: #0A7355;
+  --el-button-active-border-color: #0A7355;
+  font-weight: 500;
+}
+
+/* ---------- 抽屉标题 ---------- */
+.teacher-main .el-drawer__header {
+  margin-bottom: 0;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--t-border, #ECEFEE);
+  color: var(--t-text, #16201c);
+  font-weight: 600;
+}
+
+/* ---------- 滚动条 (细腻) ---------- */
+.teacher-main ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.teacher-main ::-webkit-scrollbar-thumb {
+  background: #DDE2E0;
+  border-radius: 8px;
+}
+
+.teacher-main ::-webkit-scrollbar-thumb:hover {
+  background: #C9D0CD;
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 768px) {
+  .t-card__body,
+  .t-card__head {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

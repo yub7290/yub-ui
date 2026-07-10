@@ -1,11 +1,10 @@
 <template>
-  <el-dialog
+  <YubDialog
     v-model="visible"
     :title="isEdit ? '编辑积分商品' : '新增积分商品'"
     width="600px"
-    :before-close="() => visible = false"
-    @open="handleOpen"
     destroy-on-close
+    @open="handleOpen"
   >
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="100px">
       <el-form-item label="商品类型">
@@ -61,10 +60,11 @@
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
     </template>
-  </el-dialog>
+  </YubDialog>
 </template>
 
 <script setup>
+import YubDialog from '@/components/YubDialog.vue'
 import { usePointsProductFormDialog } from '@/composables/edu/usePointsProductFormDialog'
 
 const props = defineProps({

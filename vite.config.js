@@ -18,7 +18,10 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': {
           target: env.VITE_API_BASE_URL || 'http://localhost:8001',
-          changeOrigin: true
+          changeOrigin: true,
+          // 大文件上传需要更长超时
+          timeout: 900000,
+          proxyTimeout: 900000
         }
       }
     }

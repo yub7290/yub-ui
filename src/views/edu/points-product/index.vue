@@ -73,8 +73,8 @@
             <el-switch
               :model-value="row.status === 1"
               :loading="row._statusLoading"
-              active-color="#38daa6"
-              inactive-color="#cbd5e1"
+             
+             
               @change="(val) => handleStatusChange(row, val)"
             />
           </template>
@@ -142,7 +142,5 @@ const {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: calc(100vh - 140px);
-  padding: 0;
 }
 </style>

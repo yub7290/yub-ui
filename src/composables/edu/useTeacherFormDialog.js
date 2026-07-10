@@ -229,6 +229,7 @@ export function useTeacherFormDialog(props, emit) {
         ElMessage.success('编辑成功')
       } else {
         // 新建时不传密码，后端自动分配默认密码
+        // 默认密码为 123456
         delete payload.password
         await createTeacher(payload)
         ElMessage.success('新增成功')

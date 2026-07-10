@@ -136,8 +136,6 @@ function formatDateTime(date) {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: calc(100vh - 140px);
-  padding: 0;
 }
 .image-error {
   display: flex;

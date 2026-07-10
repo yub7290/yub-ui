@@ -59,13 +59,14 @@
     </el-table>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog
-      v-model="dialogVisible"
+    <YubDialog
+      :model-value="dialogVisible"
       :title="isEdit ? '编辑章节' : '新增章节'"
       width="700px"
-      :before-close="() => dialogVisible = false"
-      @open="handleDialogOpen"
       destroy-on-close
+      :before-close="() => dialogVisible = false"
+      @update:model-value="dialogVisible = $event"
+      @open="handleDialogOpen"
     >
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
         <el-tabs v-model="activeTab" type="border-card">
@@ -101,11 +102,11 @@
                 <el-form-item>
                   <template #label>
                     完结
-                    <el-tooltip content="编辑完成的章节，学员才能学习" placement="top">
-                      <el-icon style="margin-left:4px;color:#909399;cursor:help;font-size:14px"><InfoFilled /></el-icon>
+                  <el-tooltip content="编辑完成的章节，学员才能学习" placement="top">
+                    <el-icon style="margin-left:4px;color:#909399;cursor:help;font-size:14px"><InfoFilled /></el-icon>
                     </el-tooltip>
                   </template>
-                  <el-checkbox v-model="formData.isCompleted" :true-value="1" :false-value="0" />
+                <el-checkbox v-model="formData.isCompleted" :true-value="1" :false-value="0" />
                 </el-form-item>
               </el-col>
               <el-col :span="8">
@@ -123,8 +124,17 @@
             <el-form-item label="图文资料">
               <RichEditor v-model="formData.contentText" />
             </el-form-item>
-            <el-form-item label="章节视频">
-              <div class="chapter-video-field">
+          </el-tab-pane>
+
+          <!-- 视频 -->
+          <el-tab-pane label="视频" name="video">
+            <div class="chapter-video-field">
+                <div v-if="videoUploading" class="upload-progress-box">
+                  <el-icon class="upload-spinner"><Loading /></el-icon>
+                  <div class="upload-file-name">{{ uploadFileName }}</div>
+                  <el-progress :percentage="uploadProgress" :stroke-width="10" />
+                  <div class="upload-percent-text">上传进度 {{ uploadProgress }}%</div>
+                </div>
                 <el-upload
                   drag
                   multiple
@@ -149,12 +159,50 @@
                     <el-button link type="danger" size="small" @click="removeVideo(index)">移除</el-button>
                   </div>
                 </div>
-              </div>
-            </el-form-item>
-            <el-form-item>
+            </div>
+          </el-tab-pane>
+
+          <!-- 附件 -->
+          <el-tab-pane label="附件" name="attachment">
+            <div class="chapter-video-field">
+                <div v-if="attachmentUploading" class="upload-progress-box">
+                  <el-icon class="upload-spinner"><Loading /></el-icon>
+                  <div class="upload-file-name">{{ attachmentUploadFileName }}</div>
+                  <el-progress :percentage="attachmentUploadProgress" :stroke-width="10" />
+                  <div class="upload-percent-text">上传进度 {{ attachmentUploadProgress }}%</div>
+                </div>
+                <el-upload
+                  drag
+                  multiple
+                  :show-file-list="false"
+                  :before-upload="handleAttachmentUpload"
+                  :disabled="attachmentUploading"
+                >
+                  <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
+                  <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                  <template #tip>
+                    <div class="el-upload__tip">支持 doc/docx/pdf/xls/xlsx/ppt/pptx/zip/rar/7z/txt 等文件，单个不超过 100MB</div>
+                  </template>
+                </el-upload>
+                <div v-if="formData.attachmentList.length" class="video-list">
+                  <div v-for="(file, index) in formData.attachmentList" :key="file.fileUrl || index" class="video-item">
+                    <div class="video-main">
+                      <el-icon><Document /></el-icon>
+                      <span class="video-name">{{ file.fileName }}</span>
+                      <span class="video-size" v-if="file.fileSize">{{ formatFileSize(file.fileSize) }}</span>
+                    </div>
+                    <el-button link type="danger" size="small" @click="removeAttachment(index)">移除</el-button>
+                  </div>
+                </div>
+            </div>
+          </el-tab-pane>
+
+          <!-- 直播 -->
+          <el-tab-pane label="直播" name="live">
+            <el-form-item label="开启直播">
               <template #label>
-                直播
-                <el-tooltip content="当前章节作为直播课" placement="top">
+                开启直播
+                <el-tooltip content="当前竞节作为直播课" placement="top">
                   <el-icon style="margin-left:4px;color:#909399;cursor:help;font-size:14px"><InfoFilled /></el-icon>
                 </el-tooltip>
               </template>
@@ -187,18 +235,19 @@
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
       </template>
-    </el-dialog>
+    </YubDialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import { getChapterTree, getChapterDetail, createChapter, updateChapter, deleteChapter, getChapterKnowledgeIds, saveChapterKnowledge } from '@/api/edu/chapter'
-import { uploadVideo } from '@/api/edu/upload'
+import { uploadVideo, uploadFile } from '@/api/edu/upload'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus, InfoFilled, UploadFilled, VideoPlay } from '@element-plus/icons-vue'
+import { Plus, InfoFilled, UploadFilled, VideoPlay, Loading, Document } from '@element-plus/icons-vue'
 import RichEditor from '@/components/RichEditor.vue'
 import KnowledgePicker from '@/components/edu/KnowledgePicker.vue'
+import YubDialog from '@/components/YubDialog.vue'
 
 const props = defineProps({
   courseId: { type: Number, required: true }
@@ -212,6 +261,11 @@ const dialogVisible = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
 const videoUploading = ref(false)
+const uploadProgress = ref(0)
+const uploadFileName = ref('')
+const attachmentUploading = ref(false)
+const attachmentUploadProgress = ref(0)
+const attachmentUploadFileName = ref('')
 const editId = ref(null)
 const formRef = ref(null)
 const disableParentSelect = ref(false)
@@ -229,7 +283,8 @@ const formData = reactive({
   liveStartTime: null,
   liveDuration: null,
   knowledgePointIds: [],
-  videoList: []
+  videoList: [],
+  attachmentList: []
 })
 
 const formRules = {
@@ -280,6 +335,12 @@ async function handleEdit(id) {
       videoUrl: item.videoUrl,
       fileSize: item.fileSize || null
     })).filter(item => item.videoUrl)
+    formData.attachmentList = (data.attachmentList || []).map(item => ({
+      fileName: item.fileName,
+      fileUrl: item.fileUrl,
+      fileSize: item.fileSize || null,
+      fileType: item.fileType || ''
+    })).filter(item => item.fileUrl)
     disableParentSelect.value = true
 
     // 加载已关联知识点
@@ -318,6 +379,7 @@ function resetForm() {
   formData.liveStartTime = null
   formData.liveDuration = null
   formData.videoList = []
+  formData.attachmentList = []
   formData.knowledgePointIds = []
   knowledgeLoadFailed.value = false
   isEdit.value = false
@@ -336,8 +398,12 @@ async function handleVideoUpload(file) {
     return false
   }
   videoUploading.value = true
+  uploadProgress.value = 0
+  uploadFileName.value = file.name
   try {
-    const res = await uploadVideo(file, 'edu/chapter/videos')
+    const res = await uploadVideo(file, 'edu/chapter/videos', (percent) => {
+      uploadProgress.value = percent
+    })
     formData.videoList.push({
       videoName: file.name,
       videoUrl: res.data,
@@ -348,12 +414,49 @@ async function handleVideoUpload(file) {
     // request interceptor already shows the error message
   } finally {
     videoUploading.value = false
+    uploadProgress.value = 0
+    uploadFileName.value = ''
   }
   return false
 }
 
 function removeVideo(index) {
   formData.videoList.splice(index, 1)
+}
+
+async function handleAttachmentUpload(file) {
+  const maxSize = 100 * 1024 * 1024
+  if (file.size > maxSize) {
+    ElMessage.error('单个附件不能超过 100MB')
+    return false
+  }
+  attachmentUploading.value = true
+  attachmentUploadProgress.value = 0
+  attachmentUploadFileName.value = file.name
+  try {
+    const res = await uploadFile(file, 'edu/chapter/attachments', (percent) => {
+      attachmentUploadProgress.value = percent
+    })
+    const ext = file.name.split('.').pop() || ''
+    formData.attachmentList.push({
+      fileName: file.name,
+      fileUrl: res.data,
+      fileSize: file.size,
+      fileType: ext.toLowerCase()
+    })
+    ElMessage.success('附件上传成功')
+  } catch {
+    // request interceptor already shows the error message
+  } finally {
+    attachmentUploading.value = false
+    attachmentUploadProgress.value = 0
+    attachmentUploadFileName.value = ''
+  }
+  return false
+}
+
+function removeAttachment(index) {
+  formData.attachmentList.splice(index, 1)
 }
 
 function formatFileSize(size) {
@@ -383,6 +486,13 @@ async function handleSubmit() {
         videoName: item.videoName || `视频${index + 1}`,
         videoUrl: item.videoUrl,
         fileSize: item.fileSize || null,
+        sort: index
+      })),
+      attachmentList: formData.attachmentList.map((item, index) => ({
+        fileName: item.fileName,
+        fileUrl: item.fileUrl,
+        fileSize: item.fileSize || null,
+        fileType: item.fileType || '',
         sort: index
       }))
     }
@@ -447,5 +557,11 @@ async function handleDelete(id) {
 .video-item:last-child { border-bottom: none; }
 .video-main { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .video-name { max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #303133; font-size: 13px; }
+.upload-progress-box { background: #ecf5ff; border: 1px solid #d9ecff; border-radius: 4px; padding: 16px; margin-bottom: 10px; text-align: center; }
+.upload-spinner { font-size: 32px; color: #409eff; margin-bottom: 8px; animation: spin 1s linear infinite; }
+.upload-progress-detail { margin-top: 8px; }
+.upload-file-name { font-size: 13px; color: #303133; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.upload-percent-text { font-size: 12px; color: #909399; margin-top: 4px; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .video-size { color: #909399; font-size: 12px; }
 </style>

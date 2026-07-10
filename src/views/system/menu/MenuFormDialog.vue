@@ -1,9 +1,9 @@
 <template>
-  <el-dialog
+  <YubDialog
     v-model="visible"
     :title="isEdit ? '编辑菜单' : '新增菜单'"
     width="650px"
-    :before-close="() => visible = false"
+    destroy-on-close
     @open="handleOpen"
   >
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="100px">
@@ -101,10 +101,11 @@
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
     </template>
-  </el-dialog>
+  </YubDialog>
 </template>
 
 <script setup>
+import YubDialog from '@/components/YubDialog.vue'
 import { useMenuFormDialog } from '@/composables/useMenuFormDialog'
 
 const props = defineProps({

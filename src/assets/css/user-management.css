@@ -3,15 +3,89 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: calc(100vh - 140px);
+}
+
+/* ===== 通用页面容器 — 所有管理页面根容器统一使用 ===== */
+.page-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 20px;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+/* 兼容旧的 class 名（逐步迁移到 .page-container） */
+.user-management,
+.course-management,
+.major-management,
+.question-management,
+.student-management,
+.teacher-management,
+.teacher-title-management,
+.announcement-management,
+.study-card-management,
+.fund-management,
+.transaction-management,
+.course-order-management,
+.points-order-management,
+.points-product-management,
+.points-setting-management,
+.banner-management,
+.dept-management,
+.dict-type-management,
+.menu-management,
+.role-management,
+.recycle-page,
+.knowledge-page,
+.homework-page,
+.homework-detail {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 20px;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+/* ===== 左右分屏布局 — 所有管理页面统一使用 ===== */
+.split-layout {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.split-layout > aside,
+.split-layout > main,
+.split-layout > .left-panel,
+.split-layout > .right-panel,
+.split-layout > .tree-panel,
+.split-layout > .list-panel,
+.split-layout > .course-list,
+.split-layout > .major-sidebar,
+.split-layout > .group-list-panel,
+.split-layout > .group-detail-panel {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  align-self: stretch;
 }
 
 /* ===== 搜索卡片 ===== */
 .search-card {
   position: relative;
-  margin-bottom: 16px;
   overflow: hidden;
   border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.search-card :deep(.el-card__body) {
+  padding: 16px 20px 0 20px;
 }
 
 .card-accent {
@@ -20,7 +94,7 @@
   left: 0;
   width: 4px;
   height: 100%;
-  background: #38daa6;
+  background: var(--el-color-primary);
   border-radius: 0 2px 2px 0;
 }
 
@@ -94,7 +168,7 @@
 }
 
 .total-text b {
-  color: #38daa6;
+  color: var(--el-color-primary);
   font-weight: 700;
 }
 

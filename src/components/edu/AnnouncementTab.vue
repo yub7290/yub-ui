@@ -14,7 +14,7 @@
       <el-table-column prop="source" label="来源" width="120" />
       <el-table-column prop="status" label="状态" width="70" align="center">
         <template #default="{ row }">
-          <el-switch :model-value="row.status === 1" size="small" active-color="#38daa6" inactive-color="#cbd5e1" disabled />
+          <el-switch :model-value="row.status === 1" size="small" disabled />
         </template>
       </el-table-column>
       <el-table-column label="创建时间" width="170">
@@ -38,8 +38,14 @@
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑公告' : '新增公告'" width="800px"
-      :before-close="() => dialogVisible = false" destroy-on-close>
+    <YubDialog
+      :model-value="dialogVisible"
+      :title="isEdit ? '编辑公告' : '新增公告'"
+      width="800px"
+      destroy-on-close
+      :before-close="() => dialogVisible = false"
+      @update:model-value="dialogVisible = $event"
+    >
       <el-tabs v-model="activeTab" type="border-card">
         <el-tab-pane label="基本信息" name="basic">
           <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
@@ -62,7 +68,7 @@
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
       </template>
-    </el-dialog>
+    </YubDialog>
   </div>
 </template>
 
@@ -72,6 +78,7 @@ import { getAnnouncementPage, getAnnouncementDetail, createAnnouncement, updateA
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import RichEditor from '@/components/RichEditor.vue'
+import YubDialog from '@/components/YubDialog.vue'
 
 const props = defineProps({ courseId: { type: Number, default: null } })
 const emit = defineEmits(['change'])
@@ -128,5 +135,5 @@ async function handleDelete(id) {
 .tab-toolbar { margin-bottom: 12px; }
 .pagination-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 0; }
 .total-text { font-size: 13px; color: #64748b; }
-.total-text b { color: #38daa6; font-weight: 700; }
+.total-text b { color: var(--el-color-primary); font-weight: 700; }
 </style>

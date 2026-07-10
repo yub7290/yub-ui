@@ -71,3 +71,13 @@ export function changeMajorStatus(id, status) {
 export function changeMajorRecommended(id, recommended) {
   return request.put(`/edu/major/${id}/recommended`, { status: recommended })
 }
+
+/**
+ * 批量更新专业排序 / 层级（拖拽排序）
+ *
+ * @param {object} data 排序数据 { items: [{ id, parentId, sort }] }
+ * @returns {Promise}
+ */
+export function batchUpdateMajorSort(data) {
+  return request.put('/edu/major/sort', data)
+}

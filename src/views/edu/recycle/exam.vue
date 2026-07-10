@@ -35,5 +35,4 @@ const { loading, tableData, handleRestore, handleDelete } = useRecycleManagement
 
 <style scoped>
 @import '@/assets/css/user-management.css';
-.recycle-page { padding: 0; }
 </style>

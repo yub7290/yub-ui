@@ -115,8 +115,6 @@ async function handleSave() {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: calc(100vh - 140px);
-  padding: 0;
 }
 .card-title {
   font-size: 16px;

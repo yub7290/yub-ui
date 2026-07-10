@@ -53,8 +53,8 @@
               :loading="row._statusLoading"
               @change="(val) => handleStatusChange(row, val)"
               size="small"
-              active-color="#38daa6"
-              inactive-color="#cbd5e1"
+             
+             
             />
           </template>
         </el-table-column>
@@ -65,8 +65,8 @@
               :loading="row._recommendedLoading"
               @change="(val) => handleRecommendedChange(row, val)"
               size="small"
-              active-color="#38daa6"
-              inactive-color="#cbd5e1"
+             
+             
             />
           </template>
         </el-table-column>
@@ -114,11 +114,4 @@ const {
 
 <style scoped>
 @import '@/assets/css/user-management.css';
-.major-management {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: calc(100vh - 140px);
-  padding: 0;
-}
 </style>

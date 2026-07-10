@@ -82,9 +82,9 @@
         </el-form>
 
         <div class="form-footer">
-          <span>© {{ currentYear }} 智慧教育系统</span>
+          <router-link to="/teacher/login" class="portal-link">教师登录 →</router-link>
           <span class="footer-divider">|</span>
-          <span>技术支持团队</span>
+          <span>&copy; {{ currentYear }} 智慧教育系统</span>
         </div>
       </div>
     </div>
@@ -100,4 +100,14 @@ const { formRef, loading, captchaImage, rememberMe, loginForm, rules, currentYea
 
 <style scoped>
 @import '@/assets/css/login.css';
+
+.login-container {
+  background-color: #f0f2f5;
+}
+
+.login-brand {
+  background: linear-gradient(135deg, #1a2332 0%, #0f1724 100%);
+}
+
+/* 管理端登录按钮使用 Element Plus 原生蓝色，不覆盖 */
 </style>

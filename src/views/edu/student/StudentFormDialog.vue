@@ -1,9 +1,8 @@
 <template>
-  <el-dialog
-    :title="isEdit ? '编辑学员' : '新增学员'"
+  <YubDialog
     v-model="visible"
+    :title="isEdit ? '编辑学员' : '新增学员'"
     width="820px"
-    :close-on-click-modal="false"
     @open="handleOpen"
   >
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="110px">
@@ -30,7 +29,7 @@
             </el-col>
             <el-col :span="12">
               <el-form-item v-if="!isEdit" label="密码提示">
-                <el-input value="默认密码：admin123" disabled />
+                <el-input value="默认密码：123456" disabled />
               </el-form-item>
             </el-col>
           </el-row>
@@ -54,7 +53,9 @@
             </el-col>
             <el-col :span="12">
               <el-form-item label="学员组">
-                <el-input v-model="formData.groupId" placeholder="请输入学员组ID" type="number" />
+                <el-select v-model="formData.groupId" placeholder="请选择学员组" clearable style="width: 100%">
+                  <el-option v-for="item in groupOptions" :key="item.id" :label="item.name" :value="item.id" />
+                </el-select>
               </el-form-item>
             </el-col>
           </el-row>
@@ -223,12 +224,13 @@
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
     </template>
-  </el-dialog>
+  </YubDialog>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
+import YubDialog from '@/components/YubDialog.vue'
 import RichEditor from '@/components/RichEditor.vue'
 import { useStudentFormDialog } from '@/composables/edu/useStudentFormDialog'
 
@@ -242,7 +244,7 @@ const avatarInput = ref(null)
 
 const {
   visible, isEdit, submitting, formRef, activeTab, avatarUrl, computedAge,
-  genderOptions, educationOptions, nationalityOptions, nativePlaceOptions,
+  genderOptions, educationOptions, nationalityOptions, nativePlaceOptions, groupOptions,
   formData, rules, handleOpen, handleSubmit, handleAvatarUpload
 } = useStudentFormDialog(props, emit)
 </script>

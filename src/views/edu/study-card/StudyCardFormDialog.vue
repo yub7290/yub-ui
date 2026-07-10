@@ -1,11 +1,10 @@
 <template>
-  <el-dialog
+  <YubDialog
     v-model="visible"
     :title="isEdit ? '编辑学习卡' : '新增学习卡'"
     width="750px"
-    :before-close="() => visible = false"
-    @open="handleOpen"
     destroy-on-close
+    @open="handleOpen"
   >
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="120px">
       <el-row :gutter="20">
@@ -20,8 +19,8 @@
               v-model="formData.status"
               :active-value="1"
               :inactive-value="0"
-              active-color="#38daa6"
-              inactive-color="#cbd5e1"
+             
+             
             />
           </el-form-item>
         </el-col>
@@ -125,11 +124,12 @@
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
     </template>
-  </el-dialog>
+  </YubDialog>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import YubDialog from '@/components/YubDialog.vue'
 import { useStudyCardFormDialog } from '@/composables/edu/useStudyCardFormDialog'
 
 const props = defineProps({

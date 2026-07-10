@@ -3,18 +3,29 @@
 </template>
 
 <style>
-body {
+html, body {
+  height: 100%;
+  overflow: hidden;
   margin: 0 !important;
 }
-
-/* ===== 全局主题色覆盖 ===== */
-:root {
-  --el-color-primary: #38daa6;
-  --el-color-primary-light-3: #5ee8c0;
-  --el-color-primary-light-5: #85efd3;
-  --el-color-primary-light-7: #adf5e3;
-  --el-color-primary-light-8: #c5f8ec;
-  --el-color-primary-light-9: #ddfaf3;
-  --el-color-primary-dark-2: #2db894;
+body.el-popup-parent--hidden {
+  overflow: hidden !important;
 }
+.el-main {
+  overflow: auto;
+}
+body.el-popup-parent--hidden .el-main {
+  overflow: hidden !important;
+}
+.el-dialog__body {
+  max-height: 70vh;
+  overflow: hidden;
+}
+.el-overlay {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+/* 管理端使用 Element Plus 原生蓝色主题，不做覆盖 */
+/* 教师端通过 theme.js 动态设置绿色主题变量 */
 </style>

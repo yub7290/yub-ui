@@ -1,11 +1,10 @@
 <template>
-  <el-dialog
+  <YubDialog
     v-model="visible"
     :title="isCreateMode ? '新增课程' : '编辑课程'"
     :width="isCreateMode ? '500px' : '900px'"
-    :before-close="() => visible = false"
-    @open="handleOpen"
     destroy-on-close
+    @open="handleOpen"
   >
     <div v-if="isCreateMode" class="create-form">
       <el-form ref="formRef" :model="formData" :rules="rules" label-width="100px">
@@ -79,12 +78,12 @@
               </el-col>
             </el-row>
             <el-form-item label="教师">
-              <el-select v-model="formData.teacher" placeholder="请选择教师" clearable filterable style="width:100%">
+              <el-select v-model="formData.teacher" placeholder="请选择教师" clearable filterable style="width:100%" @change="onTeacherChange">
                 <el-option v-for="item in teacherOptions" :key="item.id" :label="item.name" :value="item.name" />
               </el-select>
             </el-form-item>
             <el-form-item label="学习目标">
-              <RichEditor v-model="formData.learningObjectives" />
+              <RichEditor v-model="formData.learningObjectives" height="240px" />
             </el-form-item>
           </el-form>
         </el-tab-pane>
@@ -148,10 +147,11 @@
       <el-button v-if="isCreateMode" type="primary" :loading="submitting" @click="handleSubmit">保存并继续</el-button>
       <el-button v-else type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
     </template>
-  </el-dialog>
+  </YubDialog>
 </template>
 
 <script setup>
+import YubDialog from '@/components/YubDialog.vue'
 import { useCourseFormDialog } from '@/composables/edu/useCourseFormDialog'
 import RichEditor from '@/components/RichEditor.vue'
 import ChapterTab from '@/components/edu/ChapterTab.vue'
@@ -174,7 +174,7 @@ const {
   visible, isCreateMode, currentCourseId,
   submitting, uploading, formRef,
   formData, rules, majorOptions, courseTypeOptions, teacherOptions, activeTab,
-  handleOpen, handleSubmit, handleImageUpload, formatMajorName
+  handleOpen, handleSubmit, handleImageUpload, formatMajorName, onTeacherChange
 } = useCourseFormDialog(props, emit)
 </script>
 

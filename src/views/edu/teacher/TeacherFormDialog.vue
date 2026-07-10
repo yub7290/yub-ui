@@ -1,9 +1,8 @@
 <template>
-  <el-dialog
-    :title="isEdit ? '编辑教师' : '新增教师'"
+  <YubDialog
     v-model="visible"
+    :title="isEdit ? '编辑教师' : '新增教师'"
     width="820px"
-    :close-on-click-modal="false"
     @open="handleOpen"
   >
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="110px">
@@ -201,12 +200,13 @@
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
     </template>
-  </el-dialog>
+  </YubDialog>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { Plus } from '@element-plus/icons-vue'
+import YubDialog from '@/components/YubDialog.vue'
 import RichEditor from '@/components/RichEditor.vue'
 import { useTeacherFormDialog } from '@/composables/edu/useTeacherFormDialog'
 

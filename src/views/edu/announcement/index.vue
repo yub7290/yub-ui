@@ -52,8 +52,8 @@
             <el-switch
               :model-value="row.status === 1"
               size="small"
-              active-color="#38daa6"
-              inactive-color="#cbd5e1"
+             
+             
               disabled
             />
           </template>
@@ -99,8 +99,8 @@
     </div>
 
     <!-- 新增/编辑对话框 -->
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑公告' : '新增公告'" width="800px"
-      :before-close="() => dialogVisible = false" destroy-on-close>
+    <YubDialog v-model="dialogVisible" :title="isEdit ? '编辑公告' : '新增公告'" width="800px"
+      destroy-on-close>
       <el-tabs v-model="activeTab" type="border-card">
         <el-tab-pane label="基本信息" name="basic">
           <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
@@ -126,10 +126,10 @@
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
       </template>
-    </el-dialog>
+    </YubDialog>
 
     <!-- 查看公告详情对话框 -->
-    <el-dialog v-model="viewDialogVisible" title="公告详情" width="700px" destroy-on-close>
+    <YubDialog v-model="viewDialogVisible" title="公告详情" width="700px" destroy-on-close>
       <div class="view-detail">
         <h2 class="view-title">{{ viewData.title || '-' }}</h2>
         <div class="view-meta">
@@ -143,7 +143,7 @@
       <template #footer>
         <el-button @click="viewDialogVisible = false">关闭</el-button>
       </template>
-    </el-dialog>
+    </YubDialog>
   </div>
 </template>
 
@@ -158,6 +158,7 @@ import {
 } from '@/api/edu/announcement'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, FolderOpened } from '@element-plus/icons-vue'
+import YubDialog from '@/components/YubDialog.vue'
 import RichEditor from '@/components/RichEditor.vue'
 
 const loading = ref(false)
@@ -307,8 +308,6 @@ async function handleDelete(id) {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: calc(100vh - 140px);
-  padding: 0;
 }
 .view-detail { padding: 0 4px; }
 .view-title { font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 12px; }

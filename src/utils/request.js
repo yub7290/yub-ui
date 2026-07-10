@@ -1,36 +1,41 @@
 import axios from 'axios'
-import { getAccessToken, getRefreshToken, setAccessToken, clearToken } from './auth'
+import {
+  getAccessToken, getRefreshToken, setAccessToken, setRefreshToken,
+  clearToken, resolveRoleByUrl
+} from './auth'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
+import { clearTheme } from './theme'
 
 const service = axios.create({
   baseURL: '/api',
   timeout: 120000
 })
 
-let isRefreshing = false
-let pendingRequests = []
+/**
+ * 每个角色独立的刷新锁与等待队列。
+ * 双端可能同时进入刷新流程，必须按角色隔离，避免用一端的新 token 去重放另一端的请求。
+ */
+const refreshing = { ADMIN: false, TEACHER: false }
+const pendingRequests = { ADMIN: [], TEACHER: [] }
 
-function addPendingRequest(config) {
+function addPendingRequest(role, config) {
   config._retry = true
-  return new Promise((resolve) => {
-    pendingRequests.push({ config, resolve })
+  return new Promise((resolve, reject) => {
+    pendingRequests[role].push({ config, resolve, reject })
   })
 }
 
-function processPendingRequests(newToken) {
-  if (!newToken) {
-    pendingRequests.forEach(({ config, resolve }) => {
-      resolve(Promise.reject(new Error('刷新失败')))
-    })
-    pendingRequests = []
-    return
-  }
-  pendingRequests.forEach(({ config, resolve }) => {
-    config.headers.Authorization = 'Bearer ' + newToken
-    resolve(service(config))
+function processPendingRequests(role, newToken) {
+  pendingRequests[role].forEach(({ config, resolve, reject }) => {
+    if (newToken) {
+      config.headers.Authorization = 'Bearer ' + newToken
+      resolve(service(config))
+    } else {
+      reject(new Error('刷新失败'))
+    }
   })
-  pendingRequests = []
+  pendingRequests[role] = []
 }
 
 /**
@@ -46,8 +51,38 @@ function getErrorMessage(error) {
   return '网络错误'
 }
 
+/**
+ * 根据角色返回对应的 Token 刷新端点
+ */
+function getRefreshUrl(role, refreshToken) {
+  return role === 'TEACHER'
+    ? '/api/teacher/auth/refresh/' + refreshToken
+    : '/api/auth/refresh/' + refreshToken
+}
+
+/**
+ * 清除当前会话的认证状态（单会话单身份：清掉即整端登出）
+ */
+function clearRoleState() {
+  clearToken()
+  clearTheme()
+}
+
+/**
+ * 跳转到与请求角色匹配的登录页
+ */
+function redirectToLogin(role, originalRequest) {
+  // 跳回当前页面路由（而非触发 401 的 API 地址），登录成功后由登录页带回
+  const currentPath = router.currentRoute?.value?.fullPath
+    || (role === 'TEACHER' ? '/teacher/home' : '/')
+  const loginPath = role === 'TEACHER' ? '/teacher/login' : '/login'
+  router.push({ path: loginPath, query: { redirect: currentPath } })
+}
+
 service.interceptors.request.use(
   config => {
+    // 单会话单身份模型：当前标签页的 session 只持有一个身份，
+    // 直接附加会话 token 即可，无需按 URL 推断角色。
     const token = getAccessToken()
     if (token) {
       config.headers.Authorization = 'Bearer ' + token
@@ -60,7 +95,6 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   response => {
     const res = response.data
-    // 跳过 JSON code 校验：blob 响应直接返回
     if (response.config.responseType === 'blob') {
       return res
     }
@@ -72,51 +106,58 @@ service.interceptors.response.use(
   },
   async error => {
     const originalRequest = error.config
-    if (error.response?.status === 401) {
-      // 防止重试死循环（最多1次）
+    if (error.response?.status === 401 && originalRequest) {
+      // 按"触发 401 的那个请求"的 URL 推导角色，确保刷新的是正确的一端
+      const role = resolveRoleByUrl(originalRequest.url)
+
+      // 已尝试过刷新仍 401：该角色登录态彻底失效
       if (originalRequest._retry) {
-        clearToken()
+        clearRoleState()
         ElMessage.error('登录已失效，请重新登录')
-        const currentPath = router.currentRoute?.value?.fullPath || '/'
-        router.push('/login?redirect=' + encodeURIComponent(currentPath))
+        redirectToLogin(role, originalRequest)
         return Promise.reject(error)
       }
-      if (isRefreshing) {
-        return addPendingRequest(originalRequest)
+
+      if (refreshing[role]) {
+        return addPendingRequest(role, originalRequest)
       }
+
       originalRequest._retry = true
-      isRefreshing = true
+      refreshing[role] = true
+
       const refreshToken = getRefreshToken()
       if (!refreshToken) {
-        clearToken()
+        clearRoleState()
         ElMessage.error('登录已失效，请重新登录')
-        const currentPath = router.currentRoute?.value?.fullPath || '/'
-        router.push('/login?redirect=' + encodeURIComponent(currentPath))
+        redirectToLogin(role, originalRequest)
+        refreshing[role] = false
         return Promise.reject(error)
       }
+
       try {
-        // 路径参数方式调用 /api/auth/refresh/{refreshToken}
-        const res = await axios.post('/api/auth/refresh/' + refreshToken)
+        const refreshUrl = getRefreshUrl(role, refreshToken)
+        const res = await axios.post(refreshUrl)
         const refreshData = res.data
         if (!refreshData || refreshData.code !== 200 || !refreshData.data) {
           throw new Error(refreshData?.message || '刷新失败：返回数据为空')
         }
-        const newToken = refreshData.data.accessToken
-        setAccessToken(newToken)
-        processPendingRequests(newToken)
+        const { accessToken, refreshToken: newRefreshToken } = refreshData.data
+        // 修复：后端做了 refresh token 轮转，必须同时持久化新的 access 与 refresh，
+        // 否则旧 refresh 已被服务端移除，下一次刷新必然失败
+        setAccessToken(accessToken)
+        setRefreshToken(newRefreshToken)
+        processPendingRequests(role, accessToken)
         return service(originalRequest)
       } catch (e) {
-        clearToken()
-        processPendingRequests(null)
+        clearRoleState()
+        processPendingRequests(role, null)
         ElMessage.error('登录已失效，请重新登录')
-        const currentPath = router.currentRoute?.value?.fullPath || '/'
-        router.push('/login?redirect=' + encodeURIComponent(currentPath))
+        redirectToLogin(role, originalRequest)
         return Promise.reject(e)
       } finally {
-        isRefreshing = false
+        refreshing[role] = false
       }
     }
-    // 优先显示后端返回的错误消息，否则使用 Axios 默认消息
     ElMessage.error(getErrorMessage(error))
     return Promise.reject(error)
   }

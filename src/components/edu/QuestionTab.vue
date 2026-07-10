@@ -47,7 +47,7 @@
         <template #default="{ row }">
           <el-switch :model-value="row.status === 1" :loading="row._statusLoading"
             @change="(v) => handleStatusChange(row, v)" size="small"
-            active-color="#38daa6" inactive-color="#cbd5e1" />
+            />
         </template>
       </el-table-column>
       <el-table-column label="操作" width="130" align="center" fixed="right">

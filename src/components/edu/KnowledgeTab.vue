@@ -61,7 +61,13 @@
     </el-row>
 
     <!-- 分类编辑弹窗 -->
-    <el-dialog v-model="catDialogVisible" :title="editingCatId ? '编辑分类' : '新增分类'" width="400px" destroy-on-close>
+    <YubDialog
+      :model-value="catDialogVisible"
+      :title="editingCatId ? '编辑分类' : '新增分类'"
+      width="400px"
+      destroy-on-close
+      @update:model-value="catDialogVisible = $event"
+    >
       <el-form ref="catFormRef" :model="catForm" :rules="catRules" label-width="80px" size="small">
         <el-form-item label="上级分类">
           <el-tree-select v-model="catForm.parentId" :data="categoryTree" :props="{ label: 'name', value: 'id' }"
@@ -78,10 +84,16 @@
         <el-button size="small" @click="catDialogVisible = false">取消</el-button>
         <el-button size="small" type="primary" :loading="catSubmitting" @click="submitCat">确定</el-button>
       </template>
-    </el-dialog>
+    </YubDialog>
 
     <!-- 知识点编辑弹窗（课程模式下增加分类选择） -->
-    <el-dialog v-model="kpDialogVisible" :title="editingKpId ? '编辑知识点' : '新增知识点'" width="650px" destroy-on-close>
+    <YubDialog
+      :model-value="kpDialogVisible"
+      :title="editingKpId ? '编辑知识点' : '新增知识点'"
+      width="650px"
+      destroy-on-close
+      @update:model-value="kpDialogVisible = $event"
+    >
       <el-form ref="kpFormRef" :model="kpForm" :rules="kpRules" label-width="70px" size="small">
         <el-form-item label="标题" prop="title">
           <el-input v-model="kpForm.title" maxlength="200" />
@@ -101,7 +113,7 @@
         <el-button size="small" @click="kpDialogVisible = false">取消</el-button>
         <el-button size="small" type="primary" :loading="kpSubmitting" @click="submitKp">确定</el-button>
       </template>
-    </el-dialog>
+    </YubDialog>
   </div>
 </template>
 
@@ -112,6 +124,7 @@ import { getKnowledgeListByCategory, getKnowledgeListByCourse, getKnowledgeDetai
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete } from '@element-plus/icons-vue'
 import RichEditor from '@/components/RichEditor.vue'
+import YubDialog from '@/components/YubDialog.vue'
 
 const props = defineProps({
   courseId: { type: Number, default: null }
@@ -331,7 +344,7 @@ onMounted(() => { loadCategoryTree() })
 .kt-node-actions { display: none; gap: 2px; }
 .el-tree-node__content:hover .kt-node-actions { display: inline-flex; }
 .kt-node-actions .el-icon { cursor: pointer; color: #909399; }
-.kt-node-actions .el-icon:hover { color: #38daa6; }
+.kt-node-actions .el-icon:hover { color: var(--el-color-primary); }
 .kt-list { max-height: 350px; overflow-y: auto; }
 .kt-list-item {
   display: flex;

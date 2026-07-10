@@ -49,7 +49,8 @@ export function useCourseFormDialog(props, emit) {
     freeStartTime: null,
     freeEndTime: null,
     allowTrial: 0,
-    teacher: ''
+    teacher: '',
+    teacherId: null
   })
 
   const rules = {
@@ -126,6 +127,11 @@ export function useCourseFormDialog(props, emit) {
     return prefix + row.name
   }
 
+  function onTeacherChange(teacherName) {
+    const matched = teacherOptions.value.find(t => t.name === teacherName)
+    formData.teacherId = matched ? matched.id : null
+  }
+
   async function handleOpen() {
     await loadMajorOptions()
     await loadTeacherOptions()
@@ -154,7 +160,8 @@ export function useCourseFormDialog(props, emit) {
         freeStartTime: data.freeStartTime || null,
         freeEndTime: data.freeEndTime || null,
         allowTrial: data.allowTrial ?? 0,
-        teacher: data.teacher || ''
+        teacher: data.teacher || '',
+        teacherId: data.teacherId || null
       })
     } else {
       // 新建模式：只显示名称/图片/专业
@@ -171,7 +178,8 @@ export function useCourseFormDialog(props, emit) {
       learningObjectives: '', introduction: '',
       monthsRequired: null, totalPrice: null,
       isFree: 0, isFreeLimited: 0, freeStartTime: null, freeEndTime: null, allowTrial: 0,
-      teacher: ''
+      teacher: '',
+    teacherId: null
     })
     isEdit.value = false
     isCreateMode.value = true
@@ -241,7 +249,8 @@ export function useCourseFormDialog(props, emit) {
           freeStartTime: data.freeStartTime || null,
           freeEndTime: data.freeEndTime || null,
           allowTrial: data.allowTrial ?? 0,
-          teacher: data.teacher || ''
+          teacher: data.teacher || '',
+          teacherId: data.teacherId || null
         })
         isCreateMode.value = false
         isEdit.value = true
@@ -268,7 +277,8 @@ export function useCourseFormDialog(props, emit) {
           freeStartTime: formData.freeStartTime,
           freeEndTime: formData.freeEndTime,
           allowTrial: formData.allowTrial,
-          teacher: formData.teacher || null
+          teacher: formData.teacher || null,
+          teacherId: formData.teacherId || null
         }
         await updateCourse(payload)
         ElMessage.success('保存成功')
@@ -298,6 +308,7 @@ export function useCourseFormDialog(props, emit) {
     handleOpen,
     handleSubmit,
     handleImageUpload,
-    formatMajorName
+    formatMajorName,
+    onTeacherChange
   }
 }

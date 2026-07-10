@@ -1,9 +1,8 @@
 <template>
-  <el-dialog
+  <YubDialog
     v-model="visible"
     :title="isEdit ? '编辑职称' : '新增职称'"
     width="500px"
-    :close-on-click-modal="false"
     @open="handleOpen"
   >
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="80px">
@@ -34,10 +33,11 @@
         确定
       </el-button>
     </template>
-  </el-dialog>
+  </YubDialog>
 </template>
 
 <script setup>
+import YubDialog from '@/components/YubDialog.vue'
 import { useTeacherTitleFormDialog } from '@/composables/edu/useTeacherTitleFormDialog'
 
 const props = defineProps({

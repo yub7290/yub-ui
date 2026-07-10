@@ -10,22 +10,24 @@
       </div>
     </div>
 
-    <!-- 菜单 -->
-    <el-menu
-      :default-active="activeMenu"
-      :collapse="collapsed"
-      background-color="transparent"
-      text-color="rgba(255,255,255,0.68)"
-      active-text-color="#fff"
-      router
-      class="sidebar-menu"
-    >
-      <SubMenuItem
-        v-for="menu in menus"
-        :key="menu.id"
-        :menu="menu"
-      />
-    </el-menu>
+    <!-- 菜单（可滚动） -->
+    <div class="sidebar-menu-wrapper">
+      <el-menu
+        :default-active="activeMenu"
+        :collapse="collapsed"
+        background-color="transparent"
+        text-color="rgba(255,255,255,0.68)"
+        active-text-color="#fff"
+        router
+        class="sidebar-menu"
+      >
+        <SubMenuItem
+          v-for="menu in menus"
+          :key="menu.id"
+          :menu="menu"
+        />
+      </el-menu>
+    </div>
 
     <!-- 底部折叠按钮 -->
     <div class="sidebar-footer">
@@ -62,7 +64,7 @@ const menus = computed(() => userStore.menus)
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #1a2332 0%, #0f1724 100%);
+  background: var(--theme-sidebar-bg, linear-gradient(180deg, #1a2332 0%, #0f1724 100%));
   transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   width: 220px;
   overflow: hidden;
@@ -79,7 +81,7 @@ const menus = computed(() => userStore.menus)
   display: flex;
   align-items: center;
   justify-content: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
   padding: 0 12px;
 }
@@ -105,15 +107,26 @@ const menus = computed(() => userStore.menus)
   font-weight: 700;
   letter-spacing: 1px;
   white-space: nowrap;
-  background: linear-gradient(90deg, #38daa6, #5ee8c0);
+  background: linear-gradient(90deg, var(--theme-sidebar-active-text, #409EFF), var(--theme-sidebar-active-text, #409EFF));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+/* ===== 菜单滚动区域 ===== */
+.sidebar-menu-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* 隐藏滚动条但保留滚动功能 */
+.sidebar-menu-wrapper::-webkit-scrollbar {
+  width: 0;
+}
+
 /* ===== 菜单 ===== */
 .sidebar-menu {
-  flex: 1;
   border-right: none !important;
   padding: 8px 0;
 }
@@ -129,12 +142,12 @@ const menus = computed(() => userStore.menus)
 }
 
 .sidebar-menu :deep(.el-menu-item:hover) {
-  background: rgba(56, 218, 166, 0.1) !important;
+  background: var(--theme-sidebar-hover, rgba(64,158,255,0.08)) !important;
 }
 
 .sidebar-menu :deep(.el-menu-item.is-active) {
-  background: rgba(56, 218, 166, 0.18) !important;
-  color: #fff !important;
+  background: var(--theme-sidebar-active, rgba(64,158,255,0.15)) !important;
+  color: var(--theme-sidebar-active-text, #fff) !important;
   position: relative;
 }
 
@@ -147,9 +160,9 @@ const menus = computed(() => userStore.menus)
   transform: translateY(-50%);
   width: 3px;
   height: 20px;
-  background: #38daa6;
+  background: var(--theme-sidebar-active-text, #409EFF);
   border-radius: 0 3px 3px 0;
-  box-shadow: 0 0 8px rgba(56, 218, 166, 0.5);
+  box-shadow: 0 0 8px rgba(64,158,255,0.4);
 }
 
 /* 子菜单 */
@@ -163,7 +176,7 @@ const menus = computed(() => userStore.menus)
 }
 
 .sidebar-menu :deep(.el-sub-menu__title:hover) {
-  background: rgba(56, 218, 166, 0.1) !important;
+  background: var(--theme-sidebar-hover, rgba(64,158,255,0.08)) !important;
 }
 
 .sidebar-menu :deep(.el-menu--inline) {
@@ -173,7 +186,6 @@ const menus = computed(() => userStore.menus)
   padding: 4px 0;
 }
 
-/* el-menu--inline 直接子菜单项（与 el-sub-menu 同级，如教务下的学习卡） */
 .sidebar-menu :deep(.el-menu--inline > .el-menu-item) {
   margin: 2px 8px;
   padding-left: 12px !important;
@@ -182,7 +194,6 @@ const menus = computed(() => userStore.menus)
   font-size: 13px;
 }
 
-/* el-menu--inline 内嵌套的子菜单项（如教师管理下的教师信息） */
 .sidebar-menu :deep(.el-menu--inline .el-sub-menu .el-menu--inline .el-menu-item) {
   padding-left: 36px !important;
 }
@@ -196,11 +207,11 @@ const menus = computed(() => userStore.menus)
 }
 
 .el-menu-item.is-active .menu-icon {
-  color: #38daa6;
+  color: var(--theme-sidebar-active-text, #409EFF);
 }
 
 .el-sub-menu.is-active > .el-sub-menu__title .menu-icon {
-  color: #38daa6;
+  color: var(--theme-sidebar-active-text, #409EFF);
 }
 
 /* 折叠态 */
@@ -239,8 +250,8 @@ const menus = computed(() => userStore.menus)
 }
 
 .collapse-trigger:hover {
-  color: #38daa6;
-  background: rgba(56, 218, 166, 0.12);
+  color: var(--theme-sidebar-active-text, #409EFF);
+  background: var(--theme-sidebar-hover, rgba(64,158,255,0.08));
 }
 
 /* ===== 品牌文字动画 ===== */

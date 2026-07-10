@@ -84,7 +84,7 @@
             <el-button
               v-if="row.status === 0 && row.exchangeType === 1"
               link type="primary" size="small"
-              style="color: #38daa6"
+              style="color: var(--el-color-primary)"
               @click="handleVerify(row)"
             >核销</el-button>
           </template>
@@ -126,7 +126,7 @@
     />
 
     <!-- 订单详情对话框 -->
-    <el-dialog title="订单详情" v-model="detailDialogVisible" width="520px" destroy-on-close>
+    <YubDialog title="订单详情" v-model="detailDialogVisible" width="520px" destroy-on-close>
       <el-descriptions v-if="detailOrder" :column="2" border>
         <el-descriptions-item label="订单编号" :span="2">{{ detailOrder.orderNo }}</el-descriptions-item>
         <el-descriptions-item label="商品名称" :span="2">{{ detailOrder.productName }}</el-descriptions-item>
@@ -145,13 +145,14 @@
         </el-descriptions-item>
         <el-descriptions-item label="创建时间">{{ formatDateTime(detailOrder.createTime) }}</el-descriptions-item>
       </el-descriptions>
-    </el-dialog>
+    </YubDialog>
   </div>
 </template>
 
 <script setup>
 import dayjs from 'dayjs'
 import { List } from '@element-plus/icons-vue'
+import YubDialog from '@/components/YubDialog.vue'
 import { usePointsOrderManagement } from '@/composables/edu/usePointsOrderManagement'
 import OrderShipDialog from './OrderShipDialog.vue'
 import { verifyExchangeCode } from '@/api/edu/pointsOrder'
@@ -214,7 +215,5 @@ function handleVerify(row) {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: calc(100vh - 140px);
-  padding: 0;
 }
 </style>

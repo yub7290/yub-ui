@@ -41,8 +41,15 @@
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑试卷' : '新增试卷'" width="800px"
-      :before-close="() => dialogVisible = false" destroy-on-close @open="handleOpen">
+    <YubDialog
+      :model-value="dialogVisible"
+      :title="isEdit ? '编辑试卷' : '新增试卷'"
+      width="800px"
+      destroy-on-close
+      :before-close="() => dialogVisible = false"
+      @update:model-value="dialogVisible = $event"
+      @open="handleOpen"
+    >
       <el-tabs v-model="activeTab" type="border-card">
         <el-tab-pane label="基本信息" name="basic">
           <el-form ref="formRef" :model="formData" :rules="formRules" label-width="120px">
@@ -167,7 +174,7 @@
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
       </template>
-    </el-dialog>
+    </YubDialog>
   </div>
 </template>
 
@@ -180,6 +187,7 @@ import { uploadImage } from '@/api/edu/upload'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import RichEditor from '@/components/RichEditor.vue'
+import YubDialog from '@/components/YubDialog.vue'
 
 const props = defineProps({ courseId: { type: Number, default: null }, courseName: { type: String, default: '' } })
 const emit = defineEmits(['change'])
@@ -409,7 +417,7 @@ onMounted(() => { initQuestionTypes() })
 .tab-toolbar { margin-bottom: 12px; display: flex; gap: 8px; }
 .pagination-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 0; }
 .total-text { font-size: 13px; color: #64748b; }
-.total-text b { color: #38daa6; font-weight: 700; }
+.total-text b { color: var(--el-color-primary); font-weight: 700; }
 .range-hint { font-size: 13px; color: #64748b; margin-bottom: 4px; }
 .upload-wrapper { display: flex; align-items: flex-start; }
 .upload-preview { display: flex; align-items: center; }
@@ -417,14 +425,14 @@ onMounted(() => { initQuestionTypes() })
 .type-tag { display: inline-block; min-width: 60px; font-weight: 600; font-size: 13px; color: #1e293b; }
 .type-tag-sm { font-size: 12px; font-weight: 500; margin-right: 2px; }
 .type-info { font-size: 13px; color: #475569; white-space: nowrap; }
-.calc-val { color: #38daa6; font-size: 13px; }
+.calc-val { color: var(--el-color-primary); font-size: 13px; }
 .range-check { padding: 8px 0 0; font-size: 13px; }
 .range-warning { color: #f56c6c; margin-left: 8px; font-weight: 500; }
-.range-ok { color: #38daa6; margin-left: 8px; }
+.range-ok { color: var(--el-color-primary); margin-left: 8px; }
 .chapter-percent-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
 .range-subtitle { font-weight: 600; font-size: 13px; color: #1e293b; min-width: 140px; }
 .ch-percent-item { display: inline-flex; align-items: center; gap: 2px; }
 .ch-block { margin-bottom: 10px; padding: 8px; background: #f8fafc; border-radius: 4px; }
-.ch-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; padding-left: 4px; border-left: 3px solid #38daa6; }
+.ch-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; padding-left: 4px; border-left: 3px solid var(--el-color-primary); }
 .ch-type-item { display: inline-flex; align-items: center; gap: 4px; margin-right: 12px; margin-bottom: 4px; font-size: 13px; }
 </style>

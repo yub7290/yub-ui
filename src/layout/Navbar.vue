@@ -1,17 +1,16 @@
 <template>
   <div class="navbar">
     <div class="navbar-left">
-      <el-icon class="collapse-btn" @click="emit('toggleCollapse')" :size="20">
-        <Fold v-if="!collapsed" />
-        <Expand v-else />
-      </el-icon>
       <el-breadcrumb separator="/" class="breadcrumb">
         <el-breadcrumb-item :to="{ path: '/dashboard' }">
           <el-icon :size="14"><HomeFilled /></el-icon>
           <span class="bc-text">首页</span>
         </el-breadcrumb-item>
-        <el-breadcrumb-item v-if="route.meta.title">
-          <span class="bc-text bc-active">{{ route.meta.title }}</span>
+        <el-breadcrumb-item
+          v-for="item in breadcrumbItems"
+          :key="item.path || item.name"
+        >
+          <span class="bc-text" :class="{ 'bc-active': !item.children }">{{ item.name }}</span>
         </el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -42,17 +41,48 @@
 
 <script setup>
 import { useRouter, useRoute } from 'vue-router'
+import { computed } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { UserFilled, HomeFilled, SwitchButton } from '@element-plus/icons-vue'
-
-const props = defineProps({
-  collapsed: Boolean
-})
-const emit = defineEmits(['toggleCollapse'])
+import {
+  UserFilled, HomeFilled, SwitchButton,
+  FullScreen, User, ArrowDown
+} from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+
+/**
+ * 根据菜单树构建面包屑路径
+ * 递归查找当前路由 path，返回从顶层父菜单到当前的完整路径链
+ */
+const breadcrumbItems = computed(() => {
+  if (route.name === 'Dashboard') return []
+
+  const menus = userStore.menus || []
+  const currentPath = route.path
+
+  function findPath(items, target) {
+    for (const item of items) {
+      if (item.path === target) return [item]
+      if (item.children?.length) {
+        const childPath = findPath(item.children, target)
+        if (childPath) return [item, ...childPath]
+      }
+    }
+    return null
+  }
+
+  const chain = findPath(menus, currentPath)
+  if (chain) {
+    return chain.map(m => ({ name: m.name, path: m.path, children: m.children?.length }))
+  }
+
+  // 兜底: 使用 route.meta.title
+  return route.meta?.title && route.name !== 'Dashboard'
+    ? [{ name: route.meta.title, path: route.path }]
+    : []
+})
 
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
@@ -82,35 +112,19 @@ async function handleCommand(command) {
   position: relative;
 }
 
-/* 底部渐变装饰线 */
 .navbar::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #38daa6 0%, #5ee8c0 50%, transparent 100%);
-  opacity: 0.6;
+  height: 1px;
+  background: var(--theme-navbar-border, rgba(0, 0, 0, 0.06));
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 16px;
-}
-
-.collapse-btn {
-  cursor: pointer;
-  color: #64748b;
-  padding: 6px;
-  border-radius: 8px;
-  transition: all 0.2s;
-}
-
-.collapse-btn:hover {
-  color: #38daa6;
-  background: rgba(56, 218, 166, 0.08);
 }
 
 .breadcrumb {
@@ -126,7 +140,7 @@ async function handleCommand(command) {
 
 .bc-active {
   color: #1e293b;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .navbar-right {
@@ -139,13 +153,13 @@ async function handleCommand(command) {
   cursor: pointer;
   color: #64748b;
   padding: 6px;
-  border-radius: 8px;
+  border-radius: 6px;
   transition: all 0.2s;
 }
 
 .navbar-icon:hover {
-  color: #38daa6;
-  background: rgba(56, 218, 166, 0.08);
+  color: #409EFF;
+  background: rgba(64, 158, 255, 0.08);
 }
 
 .user-info {
@@ -153,13 +167,14 @@ async function handleCommand(command) {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 10px 4px 4px;
-  border-radius: 20px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 8px;
+  background: #f5f7fa;
   transition: all 0.2s;
 }
 
 .user-info:hover {
-  background: rgba(56, 218, 166, 0.06);
+  background: rgba(64, 158, 255, 0.06);
 }
 
 .user-avatar {
@@ -169,7 +184,7 @@ async function handleCommand(command) {
 }
 
 .user-info:hover .user-avatar {
-  border-color: #38daa6;
+  border-color: #409EFF;
 }
 
 .username {
@@ -189,6 +204,6 @@ async function handleCommand(command) {
 }
 
 .user-info:hover .arrow-down {
-  color: #38daa6;
+  color: #409EFF;
 }
 </style>

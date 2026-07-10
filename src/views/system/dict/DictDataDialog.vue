@@ -1,5 +1,11 @@
 <template>
-  <el-dialog v-model="visible" :title="dictType ? '字典数据管理 - ' + dictType.name : '字典数据管理'" width="700px" :close-on-click-modal="false" @open="fetchData">
+  <YubDialog
+    v-model="visible"
+    :title="dictType ? '字典数据管理 - ' + dictType.name : '字典数据管理'"
+    width="700px"
+    destroy-on-close
+    @open="fetchData"
+  >
     <div style="margin-bottom: 12px; color: #999; font-size: 13px;">字典编码：{{ dictType ? dictType.code : '-' }}</div>
 
     <div style="margin-bottom: 12px; display: flex; gap: 8px; align-items: center;">
@@ -39,10 +45,11 @@
     <template #footer>
       <el-button @click="visible = false">关闭</el-button>
     </template>
-  </el-dialog>
+  </YubDialog>
 </template>
 
 <script setup>
+import YubDialog from '@/components/YubDialog.vue'
 import { Plus } from '@element-plus/icons-vue'
 import DictDataFormDialog from './DictDataFormDialog.vue'
 import { useDictDataManagement } from '@/composables/useDictDataManagement'

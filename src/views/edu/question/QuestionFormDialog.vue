@@ -1,6 +1,6 @@
 <template>
-  <el-dialog v-model="visible" :title="isEdit ? '编辑试题' : '新增试题'" width="850px"
-    :before-close="() => visible = false" @open="handleOpen" destroy-on-close>
+  <YubDialog v-model="visible" :title="isEdit ? '编辑试题' : '新增试题'" width="850px"
+    destroy-on-close @open="handleOpen">
     <el-tabs v-model="activeTab" type="border-card">
       <!-- ===== 题干（根据题型动态展示） ===== -->
       <el-tab-pane label="题干" name="question">
@@ -122,11 +122,12 @@
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
     </template>
-  </el-dialog>
+  </YubDialog>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
+import YubDialog from '@/components/YubDialog.vue'
 import { getCoursePage } from '@/api/edu/course'
 import { getChapterTree } from '@/api/edu/chapter'
 import { useQuestionFormDialog } from '@/composables/edu/useQuestionFormDialog'
@@ -228,17 +229,17 @@ watch(() => formData.courseId, async (val) => {
   transition: all 0.2s;
 }
 .judge-option:hover {
-  border-color: #38daa6;
+  border-color: var(--el-color-primary);
 }
 .judge-option.selected {
-  border-color: #38daa6;
+  border-color: var(--el-color-primary);
   background: #f0fdf4;
 }
 .judge-icon {
   font-size: 24px;
   font-weight: bold;
 }
-.correct-icon { color: #38daa6; }
+.correct-icon { color: var(--el-color-primary); }
 .wrong-icon { color: #f56c6c; }
 .option-index {
   font-weight: bold;

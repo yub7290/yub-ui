@@ -1,16 +1,19 @@
 <template>
   <div class="tags-view">
-    <el-tag
-      v-for="tag in tags"
-      :key="tag.path"
-      :closable="!tag.affix"
-      :type="tag.path === currentPath ? '' : 'info'"
-      :effect="tag.path === currentPath ? 'dark' : 'plain'"
-      @click="switchTag(tag)"
-      @close="closeTag(tag)"
-    >
-      {{ tag.title }}
-    </el-tag>
+    <div class="tags-wrapper">
+      <el-tag
+        v-for="tag in tags"
+        :key="tag.path"
+        :closable="!tag.affix"
+        :type="tag.path === currentPath ? '' : 'info'"
+        :effect="tag.path === currentPath ? 'dark' : 'plain'"
+        class="tag-item"
+        @click="switchTag(tag)"
+        @close="closeTag(tag)"
+      >
+        {{ tag.title }}
+      </el-tag>
+    </div>
   </div>
 </template>
 
@@ -62,16 +65,35 @@ function closeTag(tag) {
 .tags-view {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 12px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #e6e6e6;
+  padding: 6px 16px;
+  background: #fff;
+  border-bottom: 1px solid #ebeef5;
+  min-height: 36px;
+}
+
+.tags-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   overflow-x: auto;
 }
 
-.tags-view .el-tag {
+.tags-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.tag-item {
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: 4px;
   white-space: nowrap;
+  transition: all 0.15s ease;
+  font-size: 12px;
+  height: 26px;
+  line-height: 26px;
+  padding: 0 10px;
+}
+
+.tag-item:hover {
+  opacity: 0.85;
 }
 </style>

@@ -49,6 +49,5 @@ const { loading, tableData, handleRestore, handleDelete } = useRecycleManagement
 
 <style scoped>
 @import '@/assets/css/user-management.css';
-.recycle-page { padding: 0; }
 .content-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-height: 40px; }
 </style>

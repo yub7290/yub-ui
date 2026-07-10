@@ -1,5 +1,11 @@
 <template>
-  <el-dialog :title="isEdit ? '编辑字典类型' : '新增字典类型'" v-model="visible" width="500px" :close-on-click-modal="false" @open="handleOpen">
+  <YubDialog
+    v-model="visible"
+    :title="isEdit ? '编辑字典类型' : '新增字典类型'"
+    width="500px"
+    destroy-on-close
+    @open="handleOpen"
+  >
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="100px">
       <el-form-item label="字典名称" prop="name">
         <el-input v-model="formData.name" placeholder="请输入字典名称" maxlength="100" />
@@ -21,10 +27,11 @@
       <el-button @click="visible = false">取消</el-button>
       <el-button type="primary" :loading="submitting" @click="handleSubmit">确定</el-button>
     </template>
-  </el-dialog>
+  </YubDialog>
 </template>
 
 <script setup>
+import YubDialog from '@/components/YubDialog.vue'
 import { useDictTypeFormDialog } from '@/composables/useDictTypeFormDialog'
 const props = defineProps({ modelValue: Boolean, dictTypeId: { type: Number, default: null } })
 const emit = defineEmits(['update:modelValue', 'success'])

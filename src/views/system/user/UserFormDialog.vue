@@ -1,9 +1,9 @@
 <template>
-  <el-dialog
-    :title="isEdit ? '编辑用户' : '新增用户'"
+  <YubDialog
     v-model="visible"
+    :title="isEdit ? '编辑用户' : '新增用户'"
     width="520px"
-    :close-on-click-modal="false"
+    destroy-on-close
     @open="handleOpen"
   >
     <el-form ref="formRef" :model="formData" :rules="rules" label-width="80px">
@@ -59,10 +59,11 @@
         确定
       </el-button>
     </template>
-  </el-dialog>
+  </YubDialog>
 </template>
 
 <script setup>
+import YubDialog from '@/components/YubDialog.vue'
 import { useUserFormDialog } from '@/composables/useUserFormDialog'
 
 const props = defineProps({

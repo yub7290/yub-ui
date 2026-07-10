@@ -1,5 +1,6 @@
 import { ref, reactive, watch } from 'vue'
 import { createStudent, updateStudent, getStudentDetail } from '@/api/edu/student'
+import { getStudentGroupPage } from '@/api/edu/studentGroup'
 import { getDictOptions } from '@/api/system/dictData'
 import { uploadImage } from '@/api/edu/upload'
 import { ElMessage } from 'element-plus'
@@ -28,6 +29,7 @@ export function useStudentFormDialog(props, emit) {
   const educationOptions = ref([])
   const nationalityOptions = ref([])
   const nativePlaceOptions = ref([])
+  const groupOptions = ref([])
 
   const formData = reactive({
     avatarUrl: '',
@@ -68,6 +70,7 @@ export function useStudentFormDialog(props, emit) {
       { max: 50, message: '账号长度不能超过50个字符', trigger: 'blur' }
     ],
     name: [
+      { required: true, message: '请输入姓名', trigger: 'blur' },
       { max: 50, message: '姓名长度不能超过50个字符', trigger: 'blur' }
     ],
     gender: [
@@ -110,27 +113,39 @@ export function useStudentFormDialog(props, emit) {
   })
 
   async function loadOptions() {
+    console.log(111);
+    
     try {
-      const [genderRes, eduRes, natRes, placeRes] = await Promise.all([
+      const [genderRes, eduRes, natRes, placeRes] = await Promise.allSettled([
         getDictOptions('gender'),
         getDictOptions('education'),
         getDictOptions('nationality'),
         getDictOptions('native_place')
       ])
-      genderOptions.value = genderRes.data || []
-      educationOptions.value = eduRes.data || []
-      nationalityOptions.value = natRes.data || []
-      nativePlaceOptions.value = placeRes.data || []
+      genderOptions.value = genderRes.status === 'fulfilled' ? (genderRes.value?.data || []) : []
+      educationOptions.value = eduRes.status === 'fulfilled' ? (eduRes.value?.data || []) : []
+      nationalityOptions.value = natRes.status === 'fulfilled' ? (natRes.value?.data || []) : []
+      nativePlaceOptions.value = placeRes.status === 'fulfilled' ? (placeRes.value?.data || []) : []
+    } catch {
+      // 错误已处理
+    }
+
+    console.log(222);
+    
+    try {
+      const groupRes = await getStudentGroupPage({ queryParam: {}, pageParam: { pageNum: 1, pageSize: 200 } })
+      console.log('[StudentForm] groupRes', groupRes)
+      groupOptions.value = groupRes.data?.records || groupRes.data?.list || []
     } catch {
       // 错误已处理
     }
   }
 
-  /** 自动生成拼音缩写 */
+  /** 自动生成拼音缩写：全拼小写，如 张三 → zhangsan */
   function generatePinyinAbbr(name) {
     if (!name) return ''
     try {
-      return pinyin(name, { pattern: 'first', toneType: 'none', type: 'string' }).toUpperCase()
+      return pinyin(name, { toneType: 'none', type: 'string' }).toLowerCase().replace(/\s+/g, '')
     } catch {
       return ''
     }
@@ -242,7 +257,7 @@ export function useStudentFormDialog(props, emit) {
         ElMessage.success('编辑成功')
       } else {
         // 新建时不传密码，后端自动分配默认密码
-        // 默认密码为 admin123
+        // 默认密码为 123456
         delete payload.password
         await createStudent(payload)
         ElMessage.success('新增成功')
@@ -254,7 +269,7 @@ export function useStudentFormDialog(props, emit) {
 
   return {
     visible, isEdit, submitting, formRef, activeTab, avatarUrl, computedAge,
-    genderOptions, educationOptions, nationalityOptions, nativePlaceOptions,
+    genderOptions, educationOptions, nationalityOptions, nativePlaceOptions, groupOptions,
     formData, rules,
     handleOpen, handleSubmit, handleAvatarUpload, generatePinyinAbbr
   }
