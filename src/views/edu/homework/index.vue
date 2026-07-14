@@ -246,7 +246,7 @@ async function toggleGroup(group) {
     loadingMembers.value.add(group.id)
     try {
       const res = await getStudentGroupDetail(group.id)
-      group._members = res.data?.members || []
+      group._members = (res.data?.members || []).filter(m => m != null)
     } catch {
       group._members = []
     } finally {
