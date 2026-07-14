@@ -156,6 +156,12 @@ const routes = [
         meta: { title: '知识点', icon: 'Reading' }
       },
       {
+        path: 'edu/knowledge/relation',
+        name: 'EduKnowledgeRelation',
+        component: () => import('@/views/edu/knowledge/relation.vue'),
+        meta: { title: '知识关系', icon: 'Link' }
+      },
+      {
         path: 'edu/teacher',
         name: 'EduTeacher',
         component: () => import('@/views/edu/teacher/index.vue'),

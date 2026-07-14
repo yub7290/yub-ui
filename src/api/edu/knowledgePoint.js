@@ -34,3 +34,14 @@ export function getKnowledgeListByCategory(categoryId) {
 export function getKnowledgeListByCourse(courseId, params = {}) {
   return request.get(`/edu/knowledge/point/list-by-course/${courseId}`, { params })
 }
+
+export function getKnowledgeList(params = {}) {
+  return request.post('/edu/knowledge/point/page', {
+    queryParam: params,
+    pageParam: { pageNum: 1, pageSize: 1000 }
+  })
+}
+
+export function getCategoryTree() {
+  return request.get('/edu/knowledge/category/tree')
+}
