@@ -1,6 +1,7 @@
 <template>
-  <div class="cache-management">
-    <el-card class="stat-card" shadow="never">
+  <div class="page-container">
+    <!-- 顶部统计卡 -->
+    <el-card class="search-card stat-card" shadow="never">
       <div class="card-accent"></div>
       <div class="stat-content">
         <div class="stat-item">
@@ -12,16 +13,17 @@
           <div class="stat-label">监控命名空间</div>
         </div>
         <div class="stat-actions">
-          <el-button type="danger" :loading="clearingAll" @click="handleClearAll">
-            <el-icon><Delete /></el-icon>清空全部业务缓存
-          </el-button>
           <el-button :loading="loading" @click="fetchStats">
             <el-icon><Refresh /></el-icon>刷新
+          </el-button>
+          <el-button type="danger" :loading="clearingAll" @click="handleClearAll">
+            <el-icon><Delete /></el-icon>清空全部业务缓存
           </el-button>
         </div>
       </div>
     </el-card>
 
+    <!-- 表格区域 -->
     <div class="table-wrapper">
       <div class="table-header">
         <div class="table-title">缓存命名空间</div>
@@ -111,8 +113,7 @@ onMounted(() => { fetchStats() })
 
 <style scoped>
 @import '@/assets/css/user-management.css';
-.cache-management { display: flex; flex-direction: column; height: 100%; gap: 12px; }
-.stat-card { position: relative; }
+.stat-card { position: relative; flex-shrink: 0; }
 .stat-content { display: flex; align-items: center; gap: 40px; padding: 6px 10px; }
 .stat-item { text-align: center; }
 .stat-value { font-size: 26px; font-weight: 700; color: #0195ff; }

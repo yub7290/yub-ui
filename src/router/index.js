@@ -189,13 +189,7 @@ const routes = [
         path: 'edu/news',
         name: 'EduNews',
         component: () => import('@/views/edu/news/index.vue'),
-        meta: { title: '新闻资讯', icon: 'Memo' }
-      },
-      {
-        path: 'edu/news/category',
-        name: 'EduNewsCategory',
-        component: () => import('@/views/edu/newsCategory/index.vue'),
-        meta: { title: '资讯分类', icon: 'Collection' }
+        meta: { title: '新闻咨询', icon: 'Memo' }
       },
       {
         path: 'edu/cache',
