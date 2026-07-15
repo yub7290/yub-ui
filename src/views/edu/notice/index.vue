@@ -1,5 +1,6 @@
 <template>
-  <div class="notice-management">
+  <div class="page-container">
+    <!-- 搜索区 -->
     <el-card class="search-card" shadow="never">
       <div class="card-accent"></div>
       <el-form :model="queryParams" inline>
@@ -9,7 +10,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="标题">
-          <el-input v-model="queryParams.title" placeholder="请输入标题" clearable style="width: 200px" />
+          <el-input v-model="queryParams.title" placeholder="请输入标题" clearable style="width: 200px" @keyup.enter="handleQuery" />
         </el-form-item>
         <el-form-item label="类型">
           <el-select v-model="queryParams.type" placeholder="全部" clearable style="width: 130px">
@@ -29,6 +30,7 @@
       </el-form>
     </el-card>
 
+    <!-- 表格区域 -->
     <div class="table-wrapper">
       <div class="table-header">
         <div class="table-title">通知列表</div>
@@ -74,6 +76,7 @@
       </el-table>
     </div>
 
+    <!-- 分页栏 -->
     <div class="pagination-bar">
       <div class="pagination-left">
         <span class="total-text">共 <b>{{ total }}</b> 条数据</span>
@@ -86,6 +89,7 @@
       </div>
     </div>
 
+    <!-- 新增/编辑对话框 -->
     <YubDialog v-model="dialogVisible" :title="isEdit ? '编辑通知' : '新增通知'" width="800px" destroy-on-close>
       <el-tabs v-model="activeTab" type="border-card">
         <el-tab-pane label="基本信息" name="basic">
@@ -118,6 +122,7 @@
       </template>
     </YubDialog>
 
+    <!-- 通知详情对话框 -->
     <YubDialog v-model="viewDialogVisible" title="通知详情" width="700px" destroy-on-close>
       <div class="view-detail">
         <h2 class="view-title">{{ viewData.title || '-' }}</h2>
@@ -134,6 +139,7 @@
       </template>
     </YubDialog>
 
+    <!-- 阅读统计对话框 -->
     <YubDialog v-model="statsDialogVisible" title="阅读统计" width="460px" destroy-on-close>
       <el-descriptions :column="1" border>
         <el-descriptions-item label="接收人数">{{ statsData.receivers || 0 }}</el-descriptions-item>
@@ -285,7 +291,6 @@ onMounted(() => { loadCourses(); fetchData() })
 
 <style scoped>
 @import '@/assets/css/user-management.css';
-.notice-management { display: flex; flex-direction: column; height: 100%; }
 .view-detail { padding: 0 4px; }
 .view-title { font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 12px; }
 .view-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: #94a3b8; margin-bottom: 12px; }
