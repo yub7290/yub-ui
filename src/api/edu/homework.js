@@ -31,6 +31,26 @@ export function reviewQuestion(data) {
 }
 
 /**
+ * 一键复查：将 AI 判定正确的题目批量标记为已复查
+ *
+ * @param {object} data { correctionId }
+ * @returns {Promise} 已复查题数
+ */
+export function autoReviewCorrect(data) {
+  return request.post('/edu/homework/review/auto', data)
+}
+
+/**
+ * 批量删除作业题目（物理删除，不可恢复，后端自动重算统计）
+ *
+ * @param {object} data { ids: number[] }
+ * @returns {Promise}
+ */
+export function batchDeleteQuestions(data) {
+  return request.post('/edu/homework/question/batch-delete', data)
+}
+
+/**
  * 删除作业批改记录
  *
  * @param {number} id 作业批改ID

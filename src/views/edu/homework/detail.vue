@@ -89,8 +89,29 @@
           <span class="card-title">
             <el-icon class="card-title-icon"><Document /></el-icon>
             题目批改
+            <el-tag size="small" class="title-count">{{ detail.questions.length }} 题</el-tag>
           </span>
-          <el-tag size="small">{{ detail.questions.length }} 题</el-tag>
+
+          <!-- 常态工具栏 -->
+          <div v-if="!batchMode" class="toolbar">
+            <span class="review-progress">已复查 {{ reviewedCount }} / {{ totalCount }}</span>
+            <el-button type="primary" :icon="Check" @click="openAutoReview">一键复查</el-button>
+            <el-button type="danger" plain :icon="Delete" @click="toggleBatchMode">批量删除</el-button>
+          </div>
+
+          <!-- 批量模式工具栏 -->
+          <div v-else class="toolbar">
+            <span class="batch-count">已选 {{ selectedIds.length }} 项</span>
+            <el-button @click="toggleAll">{{ allSelected ? '取消全选' : '全选' }}</el-button>
+            <el-button
+              type="danger"
+              :disabled="selectedIds.length === 0"
+              @click="openDeleteConfirm"
+            >
+              删除选中 ({{ selectedIds.length }})
+            </el-button>
+            <el-button @click="toggleBatchMode">取消</el-button>
+          </div>
         </div>
       </template>
       <el-collapse v-model="activeNames" class="question-collapse">
@@ -103,7 +124,30 @@
         >
           <template #title>
             <div class="question-title-row">
-              <span class="question-no">第 {{ q.questionNo }} 题</span>
+              <div class="question-title-left">
+                <el-checkbox
+                  v-if="batchMode"
+                  class="q-checkbox"
+                  :model-value="selectedIds.includes(q.id)"
+                  @click.stop
+                  @change="(val) => onToggle(q.id, val)"
+                />
+                <span class="question-no">第 {{ q.questionNo }} 题</span>
+                <div class="question-summary">
+                  <div class="qs-col" :title="q.questionContent || '题目为空'">
+                    <span class="qs-label">题目</span>
+                    <span class="qs-value">{{ q.questionContent || '-' }}</span>
+                  </div>
+                  <div class="qs-col" :title="q.studentAnswer || '学员答案未识别'">
+                    <span class="qs-label">学员答案</span>
+                    <span class="qs-value">{{ q.studentAnswer || '未识别' }}</span>
+                  </div>
+                  <div class="qs-col" :title="q.correctAnswer || 'AI识别答案为空'">
+                    <span class="qs-label">AI识别答案</span>
+                    <span class="qs-value">{{ q.correctAnswer || '-' }}</span>
+                  </div>
+                </div>
+              </div>
               <div class="question-tags">
                 <el-tag
                   :type="q.isCorrect === 1 ? 'success' : q.isCorrect === 0 ? 'danger' : 'info'"
@@ -220,15 +264,72 @@
         </el-collapse-item>
       </el-collapse>
     </el-card>
+
+    <!-- 一键复查确认框 -->
+    <el-dialog v-model="reviewAutoVisible" title="一键复查确认" width="640px" append-to-body>
+      <div class="review-auto-tip">
+        以下 <b>{{ autoReviewCount }}</b> 道「AI 判定正确」的题目将被标记为已复查（采用 AI 判定答案），请确认后通过：
+      </div>
+      <div class="review-auto-list">
+        <div v-for="q in reviewAutoList" :key="q.id" class="review-auto-item">
+          <div class="review-auto-no">第 {{ q.questionNo }} 题</div>
+          <div class="ra-row">
+            <span class="ra-label">题目</span>
+            <span class="ra-value">{{ q.questionContent || '-' }}</span>
+          </div>
+          <div class="ra-row">
+            <span class="ra-label">学员答案</span>
+            <span class="ra-value">{{ q.studentAnswer || '未识别到答案' }}</span>
+          </div>
+          <div class="ra-row">
+            <span class="ra-label">AI识别答案</span>
+            <span class="ra-value highlight">{{ q.correctAnswer || '-' }}</span>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="reviewAutoVisible = false">取消</el-button>
+        <el-button type="primary" :loading="autoReviewLoading" @click="confirmAutoReview">
+          确认复查
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 批量删除确认框 -->
+    <el-dialog v-model="deleteConfirmVisible" title="批量删除确认" width="520px" append-to-body>
+      <div class="del-tip">
+        确认删除选中的 <b>{{ selectedIds.length }}</b> 道题目？删除后<b>不可恢复</b>，系统将自动重算统计：
+      </div>
+      <div class="del-preview">
+        <div class="del-preview-row">
+          <span>总题数</span>
+          <span>{{ detail.totalQuestions }} → <b>{{ deletePreview.newTotal }}</b></span>
+        </div>
+        <div class="del-preview-row">
+          <span>正确数</span>
+          <span>{{ detail.correctCount }} → <b>{{ deletePreview.newCorrect }}</b></span>
+        </div>
+        <div class="del-preview-row">
+          <span>得分率</span>
+          <span>{{ scorePercent }}% → <b>{{ deletePreview.newScore }}%</b></span>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="deleteConfirmVisible = false">取消</el-button>
+        <el-button type="danger" :loading="deleteLoading" @click="confirmDelete">
+          确认删除
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Picture, Document, MagicStick, EditPen } from '@element-plus/icons-vue'
+import { ArrowLeft, Picture, Document, MagicStick, EditPen, Check, Delete } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
-import { getHomeworkDetail, reviewQuestion } from '@/api/edu/homework'
+import { getHomeworkDetail, reviewQuestion, autoReviewCorrect, batchDeleteQuestions } from '@/api/edu/homework'
 import { ElMessage } from 'element-plus'
 
 const route = useRoute()
@@ -237,6 +338,14 @@ const router = useRouter()
 const pageLoading = ref(false)
 const detail = ref({})
 const activeNames = ref([])
+
+/* ===== 一键复查 / 批量删除 状态 ===== */
+const batchMode = ref(false)
+const selectedIds = ref([])
+const reviewAutoVisible = ref(false)
+const deleteConfirmVisible = ref(false)
+const autoReviewLoading = ref(false)
+const deleteLoading = ref(false)
 
 /** 解析images JSON字符串为数组 */
 function parseImages(images) {
@@ -272,6 +381,36 @@ const parsedImages = computed(() =>
 const scorePercent = computed(() => {
   if (!detail.value.totalQuestions || detail.value.totalQuestions === 0) return 0
   return Math.round((detail.value.correctCount / detail.value.totalQuestions) * 100)
+})
+
+/** 题目总数 */
+const totalCount = computed(() =>
+  detail.value.questions ? detail.value.questions.length : 0
+)
+/** 已复查题数 */
+const reviewedCount = computed(() =>
+  detail.value.questions
+    ? detail.value.questions.filter(q => q.reviewStatus === 1).length
+    : 0
+)
+/** 可一键复查的题目（AI 判定正确） */
+const reviewAutoList = computed(() =>
+  detail.value.questions ? detail.value.questions.filter(q => q.isCorrect === 1) : []
+)
+const autoReviewCount = computed(() => reviewAutoList.value.length)
+/** 是否全选 */
+const allSelected = computed(() => totalCount.value > 0 && selectedIds.value.length === totalCount.value)
+/** 批量删除后的统计预览（后端重算口径一致） */
+const deletePreview = computed(() => {
+  const total = detail.value.totalQuestions || 0
+  const correct = detail.value.correctCount || 0
+  const selCorrect = detail.value.questions
+    ? detail.value.questions.filter(q => selectedIds.value.includes(q.id) && q.isCorrect === 1).length
+    : 0
+  const newTotal = Math.max(0, total - selectedIds.value.length)
+  const newCorrect = Math.max(0, correct - selCorrect)
+  const newScore = newTotal > 0 ? Math.round((newCorrect / newTotal) * 100) : 0
+  return { newTotal, newCorrect, newScore }
 })
 
 /** 批改状态标签映射 */
@@ -339,6 +478,76 @@ async function handleSaveReview(q) {
     // 错误已处理
   } finally {
     q._saving = false
+  }
+}
+
+/* ===== 一键复查 ===== */
+/** 打开一键复查确认框（展示题目/学员答案/AI答案供教师确认） */
+function openAutoReview() {
+  if (autoReviewCount.value === 0) {
+    ElMessage.warning('当前没有 AI 判定正确的题目可复查')
+    return
+  }
+  reviewAutoVisible.value = true
+}
+
+/** 确认一键复查：仅 AI 判定正确的题标记为已复查，采用 AI 答案 */
+async function confirmAutoReview() {
+  autoReviewLoading.value = true
+  try {
+    const res = await autoReviewCorrect({ correctionId: detail.value.id })
+    const n = res.data || autoReviewCount.value
+    ElMessage.success(`已复查 ${n} 道题目`)
+    reviewAutoVisible.value = false
+    await fetchDetail()
+  } catch {
+    // 错误已处理
+  } finally {
+    autoReviewLoading.value = false
+  }
+}
+
+/* ===== 批量删除 ===== */
+/** 切换批量模式 */
+function toggleBatchMode() {
+  batchMode.value = !batchMode.value
+  if (!batchMode.value) selectedIds.value = []
+}
+
+/** 切换单题勾选 */
+function onToggle(id, val) {
+  if (val) {
+    if (!selectedIds.value.includes(id)) selectedIds.value.push(id)
+  } else {
+    selectedIds.value = selectedIds.value.filter(x => x !== id)
+  }
+}
+
+/** 全选 / 取消全选 */
+function toggleAll() {
+  selectedIds.value = allSelected.value ? [] : detail.value.questions.map(q => q.id)
+}
+
+/** 打开批量删除确认框 */
+function openDeleteConfirm() {
+  if (selectedIds.value.length === 0) return
+  deleteConfirmVisible.value = true
+}
+
+/** 确认批量删除：物理删除 + 后端重算统计 */
+async function confirmDelete() {
+  deleteLoading.value = true
+  try {
+    await batchDeleteQuestions({ ids: selectedIds.value })
+    ElMessage.success(`已删除 ${selectedIds.value.length} 道题目`)
+    deleteConfirmVisible.value = false
+    batchMode.value = false
+    selectedIds.value = []
+    await fetchDetail()
+  } catch {
+    // 错误已处理
+  } finally {
+    deleteLoading.value = false
   }
 }
 
@@ -522,16 +731,62 @@ onMounted(() => {
   padding-right: 12px;
 }
 
+.question-title-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
 .question-no {
   font-weight: 600;
   color: var(--el-color-primary);
   font-size: 15px;
+  flex-shrink: 0;
+}
+
+.question-summary {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.qs-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 0;
+  max-width: 260px;
+}
+
+.qs-label {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.qs-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #334155;
 }
 
 .question-tags {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 /* 题目详情内容 */
@@ -690,6 +945,124 @@ onMounted(() => {
   text-decoration: underline;
 }
 
+/* ===== 工具栏 / 批量模式 ===== */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-count {
+  margin-left: 8px;
+}
+
+.review-progress {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.batch-count {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.q-checkbox {
+  margin-right: 8px;
+}
+
+/* 一键复查弹框 */
+.review-auto-tip {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.review-auto-tip b {
+  color: var(--el-color-primary);
+}
+
+.review-auto-list {
+  max-height: 360px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.review-auto-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: #f8fafc;
+}
+
+.review-auto-no {
+  font-weight: 600;
+  color: var(--el-color-primary);
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.ra-row {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+.ra-label {
+  flex: 0 0 76px;
+  color: #64748b;
+}
+
+.ra-value {
+  flex: 1;
+  color: #1e293b;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ra-value.highlight {
+  color: #0284c7;
+  font-weight: 500;
+}
+
+/* 批量删除预览 */
+.del-tip {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.del-tip b {
+  color: var(--el-color-danger);
+}
+
+.del-preview {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.del-preview-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #334155;
+}
+
+.del-preview-row b {
+  color: var(--el-color-danger);
+}
+
 /* 响应式 */
 @media (max-width: 768px) {
   .homework-detail {
@@ -704,6 +1077,18 @@ onMounted(() => {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+  }
+
+  .question-title-left {
+    width: 100%;
+  }
+
+  .question-summary {
+    gap: 12px;
+  }
+
+  .qs-col {
+    max-width: 100%;
   }
 
   .source-image {
