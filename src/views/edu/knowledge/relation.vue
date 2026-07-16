@@ -104,8 +104,11 @@
         </div>
 
         <div class="relation-list">
-          <h4>关系列表</h4>
-          <el-table :data="relationList" border stripe size="small" style="width:100%">
+          <div class="relation-list-header">
+            <h4>关系列表</h4>
+            <span class="relation-count">共 {{ relationTotal }} 条</span>
+          </div>
+          <el-table :data="pagedRelationList" border stripe size="small" height="200">
             <el-table-column prop="sourceTitle" label="源知识点" min-width="150" />
             <el-table-column prop="targetTitle" label="目标知识点" min-width="150" />
             <el-table-column prop="relationTypeName" label="关系类型" width="100">
@@ -121,6 +124,17 @@
               </template>
             </el-table-column>
           </el-table>
+          <div class="relation-pagination">
+            <el-pagination
+              v-model:current-page="relationPage"
+              v-model:page-size="relationPageSize"
+              :total="relationTotal"
+              :page-sizes="[5, 10, 20, 50]"
+              layout="total, sizes, prev, pager, next, jumper"
+              @size-change="loadRelationList"
+              @current-change="loadRelationList"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -179,6 +193,10 @@ const activeNodeId = ref(null)
 const activeRelationId = ref(null)
 const currentCategoryId = ref(null)
 const categoryTreeRef = ref(null)
+
+const relationPage = ref(1)
+const relationPageSize = ref(10)
+const relationTotal = ref(0)
 
 const relationDialogVisible = ref(false)
 const editingRelationId = ref(null)
@@ -243,6 +261,12 @@ const viewBox = computed(() => ({
   width: svgWidth * scale.value,
   height: svgHeight * scale.value
 }))
+
+const pagedRelationList = computed(() => {
+  const start = (relationPage.value - 1) * relationPageSize.value
+  const end = start + relationPageSize.value
+  return relationList.value.slice(start, end)
+})
 
 const currentCategoryName = computed(() => {
   if (!currentCategoryId.value) return '全部'
@@ -603,8 +627,10 @@ async function loadRelationList() {
   try {
     const res = await getAllRelations()
     relationList.value = res.data || []
+    relationTotal.value = relationList.value.length
   } catch {
     relationList.value = []
+    relationTotal.value = 0
   }
 }
 
@@ -920,12 +946,31 @@ onMounted(() => {
 .relation-list {
   padding: 16px;
   border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
 
-.relation-list h4 {
-  margin: 0 0 12px;
+.relation-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.relation-list-header h4 {
+  margin: 0;
   font-size: 14px;
   font-weight: 600;
   color: #334155;
+}
+
+.relation-count {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.relation-pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 </style>
