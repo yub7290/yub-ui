@@ -272,30 +272,197 @@ const filteredKnowledgeList = computed(() => {
   return list
 })
 
+function calculateNodeDegrees(nodes, relations) {
+  const degrees = new Map()
+  nodes.forEach(node => degrees.set(node.id, 0))
+  relations.forEach(r => {
+    if (degrees.has(r.sourceId)) degrees.set(r.sourceId, degrees.get(r.sourceId) + 1)
+    if (degrees.has(r.targetId)) degrees.set(r.targetId, degrees.get(r.targetId) + 1)
+  })
+  return degrees
+}
+
+function findCentralNode(nodes, degrees) {
+  let centralId = null
+  let maxDegree = -1
+  nodes.forEach(node => {
+    const degree = degrees.get(node.id) || 0
+    if (degree > maxDegree) {
+      maxDegree = degree
+      centralId = node.id
+    }
+  })
+  return centralId
+}
+
+function radialLayout(nodes, relations) {
+  if (nodes.length === 0) return nodes
+  if (nodes.length === 1) {
+    nodes[0].x = svgWidth / 2
+    nodes[0].y = svgHeight / 2
+    return nodes
+  }
+
+  const degrees = calculateNodeDegrees(nodes, relations)
+  const centralId = relations.length > 0 ? findCentralNode(nodes, degrees) : null
+  const centralNode = nodes.find(n => n.id === centralId)
+
+  if (centralNode) {
+    centralNode.x = svgWidth / 2
+    centralNode.y = svgHeight / 2
+  }
+
+  const nonCentralNodes = nodes.filter(n => n.id !== centralId)
+  const nodePositions = new Map()
+  if (centralNode) nodePositions.set(centralId, { x: centralNode.x, y: centralNode.y })
+
+  const layers = buildLayers(nodes, relations, centralId)
+  
+  let layerIndex = 1
+  layers.forEach((layerNodes) => {
+    let radius = 100 + layerIndex * 80
+    const count = layerNodes.length
+    if (count === 0) {
+      layerIndex++
+      return
+    }
+
+    const angleStep = (Math.PI * 2) / count
+    layerNodes.forEach((nodeId, idx) => {
+      const node = nodes.find(n => n.id === nodeId)
+      if (!node) return
+
+      let angle = idx * angleStep - Math.PI / 2
+      
+      let x = svgWidth / 2 + radius * Math.cos(angle)
+      let y = svgHeight / 2 + radius * Math.sin(angle)
+
+      while (checkCollision(x, y, nodePositions, 70)) {
+        radius += 10
+        x = svgWidth / 2 + radius * Math.cos(angle)
+        y = svgHeight / 2 + radius * Math.sin(angle)
+      }
+
+      node.x = x
+      node.y = y
+      nodePositions.set(nodeId, { x, y })
+    })
+    layerIndex++
+  })
+
+  if (nonCentralNodes.length > 0 && layers.length === 0) {
+    const radius = 120
+    const count = nonCentralNodes.length
+    const angleStep = (Math.PI * 2) / count
+    nonCentralNodes.forEach((node, idx) => {
+      const angle = idx * angleStep - Math.PI / 2
+      node.x = svgWidth / 2 + radius * Math.cos(angle)
+      node.y = svgHeight / 2 + radius * Math.sin(angle)
+    })
+  }
+
+  applyCollisionAvoidance(nodes, 70)
+
+  return nodes
+}
+
+function buildLayers(nodes, relations, centralId) {
+  if (!centralId) return []
+  
+  const layers = []
+  const visited = new Set([centralId])
+  let currentLayer = [centralId]
+
+  while (currentLayer.length > 0) {
+    const nextLayer = new Set()
+    currentLayer.forEach(nodeId => {
+      relations.forEach(r => {
+        if (r.sourceId === nodeId && !visited.has(r.targetId)) {
+          nextLayer.add(r.targetId)
+        }
+        if (r.targetId === nodeId && !visited.has(r.sourceId)) {
+          nextLayer.add(r.sourceId)
+        }
+      })
+    })
+    const nextLayerArray = Array.from(nextLayer).filter(id => 
+      nodes.some(n => n.id === id)
+    )
+    if (nextLayerArray.length > 0) {
+      layers.push(nextLayerArray)
+      nextLayer.forEach(id => visited.add(id))
+    }
+    currentLayer = nextLayerArray
+  }
+
+  return layers
+}
+
+function checkCollision(x, y, positions, minDistance) {
+  for (const [, pos] of positions) {
+    const dx = x - pos.x
+    const dy = y - pos.y
+    const distance = Math.sqrt(dx * dx + dy * dy)
+    if (distance < minDistance) return true
+  }
+  return false
+}
+
+function applyCollisionAvoidance(nodes, minDistance) {
+  let iterations = 0
+  const maxIterations = 50
+  let moved = true
+
+  while (moved && iterations < maxIterations) {
+    moved = false
+    iterations++
+
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const n1 = nodes[i]
+        const n2 = nodes[j]
+        const dx = n2.x - n1.x
+        const dy = n2.y - n1.y
+        const distance = Math.sqrt(dx * dx + dy * dy)
+
+        if (distance < minDistance && distance > 0) {
+          const overlap = minDistance - distance
+          const separation = overlap / 2
+          const nx = dx / distance
+          const ny = dy / distance
+
+          n1.x -= nx * separation
+          n1.y -= ny * separation
+          n2.x += nx * separation
+          n2.y += ny * separation
+
+          n1.x = Math.max(50, Math.min(svgWidth - 50, n1.x))
+          n1.y = Math.max(50, Math.min(svgHeight - 50, n1.y))
+          n2.x = Math.max(50, Math.min(svgWidth - 50, n2.x))
+          n2.y = Math.max(50, Math.min(svgHeight - 50, n2.y))
+
+          moved = true
+        }
+      }
+    }
+  }
+}
+
 const displayNodes = computed(() => {
   const nodeMap = new Map()
   const validKnowledgeIds = new Set(filteredKnowledgeList.value.map(k => k.id))
+  const validRelations = []
   
   relationList.value.forEach(r => {
     if (!validKnowledgeIds.has(r.sourceId) || !validKnowledgeIds.has(r.targetId)) return
+    validRelations.push(r)
     const source = filteredKnowledgeList.value.find(k => k.id === r.sourceId)
     const target = filteredKnowledgeList.value.find(k => k.id === r.targetId)
     if (source) nodeMap.set(r.sourceId, { id: r.sourceId, title: source.title, categoryId: source.categoryId, x: 0, y: 0 })
     if (target) nodeMap.set(r.targetId, { id: r.targetId, title: target.title, categoryId: target.categoryId, x: 0, y: 0 })
   })
 
-  const nodes = Array.from(nodeMap.values())
-  const cols = Math.min(nodes.length, 5)
-  const rows = Math.ceil(nodes.length / cols)
-  const colGap = svgWidth / (cols + 1)
-  const rowGap = svgHeight / (rows + 1)
-
-  nodes.forEach((node, idx) => {
-    const col = idx % cols
-    const row = Math.floor(idx / cols)
-    node.x = colGap * (col + 1)
-    node.y = rowGap * (row + 1)
-  })
+  let nodes = Array.from(nodeMap.values())
 
   if (nodes.length === 0 && selectedKnowledgeIds.value.length > 0) {
     selectedKnowledgeIds.value.forEach((id, idx) => {
@@ -305,12 +472,14 @@ const displayNodes = computed(() => {
           id,
           title: k.title,
           categoryId: k.categoryId,
-          x: svgWidth / 2 + (idx - 0.5) * 150,
-          y: svgHeight / 2
+          x: 0,
+          y: 0
         })
       }
     })
   }
+
+  nodes = radialLayout(nodes, validRelations)
 
   return nodes
 })
