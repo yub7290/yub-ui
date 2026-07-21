@@ -162,6 +162,12 @@ const routes = [
         meta: { title: '知识关系', icon: 'Link' }
       },
       {
+        path: 'edu/share-content',
+        name: 'EduShareContent',
+        component: () => import('@/views/edu/share-content/index.vue'),
+        meta: { title: '分享内容管理', icon: 'Share' }
+      },
+      {
         path: 'edu/teacher',
         name: 'EduTeacher',
         component: () => import('@/views/edu/teacher/index.vue'),

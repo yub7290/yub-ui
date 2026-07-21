@@ -71,8 +71,8 @@
               </marker>
             </defs>
 
-            <g v-for="(relation, index) in relationList" :key="'rel-' + relation.id"
-              :class="{ active: activeRelationId === relation.id }">
+            <g v-for="(relation, index) in displayRelations" :key="'rel-' + relation.id"
+            :class="{ active: activeRelationId === relation.id }">
               <line :x1="getNodePosition(relation.sourceId).x" :y1="getNodePosition(relation.sourceId).y"
                 :x2="getNodePosition(relation.targetId).x" :y2="getNodePosition(relation.targetId).y"
                 :stroke="getRelationColor(relation.relationType)"
@@ -108,22 +108,24 @@
             <h4>关系列表</h4>
             <span class="relation-count">共 {{ relationTotal }} 条</span>
           </div>
-          <el-table :data="pagedRelationList" border stripe size="small" height="200">
-            <el-table-column prop="sourceTitle" label="源知识点" min-width="150" />
-            <el-table-column prop="targetTitle" label="目标知识点" min-width="150" />
-            <el-table-column prop="relationTypeName" label="关系类型" width="100">
-              <template #default="{ row }">
-                <el-tag :type="getRelationTagType(row.relationType)">{{ row.relationTypeName }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
-            <el-table-column label="操作" width="120" align="center">
-              <template #default="{ row }">
-                <el-button link type="primary" size="small" @click="showEditRelationDialog(row)">编辑</el-button>
-                <el-button link type="danger" size="small" @click="handleDeleteRelation(row.id)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+          <div class="relation-table-wrapper">
+            <el-table :data="pagedRelationList" border stripe size="small" :height="tableHeight">
+              <el-table-column prop="sourceTitle" label="源知识点" min-width="150" />
+              <el-table-column prop="targetTitle" label="目标知识点" min-width="150" />
+              <el-table-column prop="relationTypeName" label="关系类型" width="100">
+                <template #default="{ row }">
+                  <el-tag :type="getRelationTagType(row.relationType)">{{ row.relationTypeName }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="description" label="描述" min-width="150" show-overflow-tooltip />
+              <el-table-column label="操作" width="120" align="center">
+                <template #default="{ row }">
+                  <el-button link type="primary" size="small" @click="showEditRelationDialog(row)">编辑</el-button>
+                  <el-button link type="danger" size="small" @click="handleDeleteRelation(row.id)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
           <div class="relation-pagination">
             <el-pagination
               v-model:current-page="relationPage"
@@ -173,7 +175,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { getKnowledgeList, getCategoryTree } from '@/api/edu/knowledgePoint'
 import { getAllRelations, createRelation, updateRelation, deleteRelation } from '@/api/edu/knowledgeRelation'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -254,6 +256,7 @@ const translateY = ref(0)
 const isDragging = ref(false)
 const lastMouseX = ref(0)
 const lastMouseY = ref(0)
+const tableHeight = ref(200)
 
 const viewBox = computed(() => ({
   x: translateX.value,
@@ -262,10 +265,19 @@ const viewBox = computed(() => ({
   height: svgHeight * scale.value
 }))
 
+const filteredRelationList = computed(() => {
+  if (!currentCategoryId.value) return relationList.value
+  
+  const categoryIds = getAllCategoryIds(currentCategoryId.value)
+  const knowledgeIds = new Set(allKnowledgeList.value.filter(k => categoryIds.includes(k.categoryId)).map(k => k.id))
+  
+  return relationList.value.filter(r => knowledgeIds.has(r.sourceId) || knowledgeIds.has(r.targetId))
+})
+
 const pagedRelationList = computed(() => {
   const start = (relationPage.value - 1) * relationPageSize.value
   const end = start + relationPageSize.value
-  return relationList.value.slice(start, end)
+  return filteredRelationList.value.slice(start, end)
 })
 
 const currentCategoryName = computed(() => {
@@ -327,8 +339,35 @@ function radialLayout(nodes, relations) {
     return nodes
   }
 
+  if (relations.length === 0) {
+    const categories = {}
+    nodes.forEach(node => {
+      if (!categories[node.categoryId]) {
+        categories[node.categoryId] = []
+      }
+      categories[node.categoryId].push(node)
+    })
+
+    const categoryIds = Object.keys(categories)
+    const sectorAngle = (Math.PI * 2) / categoryIds.length
+
+    categoryIds.forEach((catId, catIdx) => {
+      const catNodes = categories[catId]
+      const startAngle = catIdx * sectorAngle - Math.PI / 2
+      const angleStep = sectorAngle / (catNodes.length + 1)
+
+      catNodes.forEach((node, idx) => {
+        const radius = 100 + Math.random() * 50
+        const angle = startAngle + angleStep * (idx + 1)
+        node.x = svgWidth / 2 + radius * Math.cos(angle)
+        node.y = svgHeight / 2 + radius * Math.sin(angle)
+      })
+    })
+    return nodes
+  }
+
   const degrees = calculateNodeDegrees(nodes, relations)
-  const centralId = relations.length > 0 ? findCentralNode(nodes, degrees) : null
+  const centralId = findCentralNode(nodes, degrees)
   const centralNode = nodes.find(n => n.id === centralId)
 
   if (centralNode) {
@@ -336,56 +375,146 @@ function radialLayout(nodes, relations) {
     centralNode.y = svgHeight / 2
   }
 
-  const nonCentralNodes = nodes.filter(n => n.id !== centralId)
   const nodePositions = new Map()
   if (centralNode) nodePositions.set(centralId, { x: centralNode.x, y: centralNode.y })
+
+  const categories = {}
+  nodes.forEach(node => {
+    if (!categories[node.categoryId]) {
+      categories[node.categoryId] = []
+    }
+    categories[node.categoryId].push(node)
+  })
+  const categoryIds = Object.keys(categories)
 
   const layers = buildLayers(nodes, relations, centralId)
   
   let layerIndex = 1
-  layers.forEach((layerNodes) => {
-    let radius = 100 + layerIndex * 80
-    const count = layerNodes.length
-    if (count === 0) {
-      layerIndex++
-      return
-    }
-
-    const angleStep = (Math.PI * 2) / count
-    layerNodes.forEach((nodeId, idx) => {
-      const node = nodes.find(n => n.id === nodeId)
-      if (!node) return
-
-      let angle = idx * angleStep - Math.PI / 2
-      
-      let x = svgWidth / 2 + radius * Math.cos(angle)
-      let y = svgHeight / 2 + radius * Math.sin(angle)
-
-      while (checkCollision(x, y, nodePositions, 70)) {
-        radius += 10
-        x = svgWidth / 2 + radius * Math.cos(angle)
-        y = svgHeight / 2 + radius * Math.sin(angle)
+  const placedNodeIds = new Set(centralId ? [centralId] : [])
+  
+  if (categoryIds.length > 1) {
+    const sectorAngle = (Math.PI * 2) / categoryIds.length
+    
+    layers.forEach((layerNodes) => {
+      let radius = 100 + layerIndex * 90
+      const count = layerNodes.length
+      if (count === 0) {
+        layerIndex++
+        return
       }
 
-      node.x = x
-      node.y = y
-      nodePositions.set(nodeId, { x, y })
-    })
-    layerIndex++
-  })
+      const nodesByCategory = {}
+      layerNodes.forEach(nodeId => {
+        const node = nodes.find(n => n.id === nodeId)
+        if (!node) return
+        if (!nodesByCategory[node.categoryId]) {
+          nodesByCategory[node.categoryId] = []
+        }
+        nodesByCategory[node.categoryId].push(node)
+      })
 
-  if (nonCentralNodes.length > 0 && layers.length === 0) {
-    const radius = 120
-    const count = nonCentralNodes.length
-    const angleStep = (Math.PI * 2) / count
-    nonCentralNodes.forEach((node, idx) => {
-      const angle = idx * angleStep - Math.PI / 2
-      node.x = svgWidth / 2 + radius * Math.cos(angle)
-      node.y = svgHeight / 2 + radius * Math.sin(angle)
+      categoryIds.forEach((catId, catIdx) => {
+        const catNodes = nodesByCategory[catId] || []
+        if (catNodes.length === 0) return
+
+        const startAngle = catIdx * sectorAngle - Math.PI / 2
+        const angleStep = sectorAngle / (catNodes.length + 1)
+
+        catNodes.forEach((node, idx) => {
+          let angle = startAngle + angleStep * (idx + 1)
+          
+          let x = svgWidth / 2 + radius * Math.cos(angle)
+          let y = svgHeight / 2 + radius * Math.sin(angle)
+
+          while (checkCollision(x, y, nodePositions, 80)) {
+            radius += 15
+            x = svgWidth / 2 + radius * Math.cos(angle)
+            y = svgHeight / 2 + radius * Math.sin(angle)
+          }
+
+          node.x = x
+          node.y = y
+          nodePositions.set(node.id, { x, y })
+          placedNodeIds.add(node.id)
+        })
+      })
+      layerIndex++
+    })
+  } else {
+    layers.forEach((layerNodes) => {
+      let radius = 100 + layerIndex * 80
+      const count = layerNodes.length
+      if (count === 0) {
+        layerIndex++
+        return
+      }
+
+      const angleStep = (Math.PI * 2) / count
+      layerNodes.forEach((nodeId, idx) => {
+        const node = nodes.find(n => n.id === nodeId)
+        if (!node) return
+
+        let angle = idx * angleStep - Math.PI / 2
+        
+        let x = svgWidth / 2 + radius * Math.cos(angle)
+        let y = svgHeight / 2 + radius * Math.sin(angle)
+
+        while (checkCollision(x, y, nodePositions, 70)) {
+          radius += 10
+          x = svgWidth / 2 + radius * Math.cos(angle)
+          y = svgHeight / 2 + radius * Math.sin(angle)
+        }
+
+        node.x = x
+        node.y = y
+        nodePositions.set(nodeId, { x, y })
+        placedNodeIds.add(nodeId)
+      })
+      layerIndex++
     })
   }
 
-  applyCollisionAvoidance(nodes, 70)
+  const unplacedNodes = nodes.filter(n => !placedNodeIds.has(n.id))
+  if (unplacedNodes.length > 0) {
+    const maxRadius = 100 + layerIndex * 90 + 80
+    const sectorAngle = (Math.PI * 2) / categoryIds.length
+
+    const nodesByCategory = {}
+    unplacedNodes.forEach(node => {
+      if (!nodesByCategory[node.categoryId]) {
+        nodesByCategory[node.categoryId] = []
+      }
+      nodesByCategory[node.categoryId].push(node)
+    })
+
+    categoryIds.forEach((catId, catIdx) => {
+      const catNodes = nodesByCategory[catId] || []
+      if (catNodes.length === 0) return
+
+      const startAngle = catIdx * sectorAngle - Math.PI / 2
+      const angleStep = sectorAngle / (catNodes.length + 1)
+
+      catNodes.forEach((node, idx) => {
+        let radius = maxRadius
+        let angle = startAngle + angleStep * (idx + 1)
+        
+        let x = svgWidth / 2 + radius * Math.cos(angle)
+        let y = svgHeight / 2 + radius * Math.sin(angle)
+
+        while (checkCollision(x, y, nodePositions, 80)) {
+          radius += 20
+          x = svgWidth / 2 + radius * Math.cos(angle)
+          y = svgHeight / 2 + radius * Math.sin(angle)
+        }
+
+        node.x = x
+        node.y = y
+        nodePositions.set(node.id, { x, y })
+      })
+    })
+  }
+
+  applyCollisionAvoidance(nodes, 80)
 
   return nodes
 }
@@ -472,36 +601,41 @@ function applyCollisionAvoidance(nodes, minDistance) {
   }
 }
 
+const displayRelations = computed(() => {
+  if (!currentCategoryId.value) return relationList.value
+  
+  const categoryIds = getAllCategoryIds(currentCategoryId.value)
+  const knowledgeIds = new Set(allKnowledgeList.value.filter(k => categoryIds.includes(k.categoryId)).map(k => k.id))
+  
+  return relationList.value.filter(r => knowledgeIds.has(r.sourceId) && knowledgeIds.has(r.targetId))
+})
+
 const displayNodes = computed(() => {
   const nodeMap = new Map()
-  const validKnowledgeIds = new Set(filteredKnowledgeList.value.map(k => k.id))
-  const validRelations = []
+  const validRelations = displayRelations.value
   
-  relationList.value.forEach(r => {
-    if (!validKnowledgeIds.has(r.sourceId) || !validKnowledgeIds.has(r.targetId)) return
-    validRelations.push(r)
-    const source = filteredKnowledgeList.value.find(k => k.id === r.sourceId)
-    const target = filteredKnowledgeList.value.find(k => k.id === r.targetId)
-    if (source) nodeMap.set(r.sourceId, { id: r.sourceId, title: source.title, categoryId: source.categoryId, x: 0, y: 0 })
-    if (target) nodeMap.set(r.targetId, { id: r.targetId, title: target.title, categoryId: target.categoryId, x: 0, y: 0 })
+  const relatedKnowledgeIds = new Set()
+  validRelations.forEach(r => {
+    relatedKnowledgeIds.add(r.sourceId)
+    relatedKnowledgeIds.add(r.targetId)
   })
-
-  let nodes = Array.from(nodeMap.values())
-
-  if (nodes.length === 0 && selectedKnowledgeIds.value.length > 0) {
-    selectedKnowledgeIds.value.forEach((id, idx) => {
-      const k = filteredKnowledgeList.value.find(item => item.id === id)
-      if (k) {
-        nodes.push({
-          id,
-          title: k.title,
-          categoryId: k.categoryId,
-          x: 0,
-          y: 0
-        })
+  
+  if (!currentCategoryId.value) {
+    allKnowledgeList.value.forEach(k => {
+      if (relatedKnowledgeIds.has(k.id)) {
+        nodeMap.set(k.id, { id: k.id, title: k.title, categoryId: k.categoryId, x: 0, y: 0 })
+      }
+    })
+  } else {
+    const categoryIds = getAllCategoryIds(currentCategoryId.value)
+    allKnowledgeList.value.forEach(k => {
+      if (categoryIds.includes(k.categoryId) && relatedKnowledgeIds.has(k.id)) {
+        nodeMap.set(k.id, { id: k.id, title: k.title, categoryId: k.categoryId, x: 0, y: 0 })
       }
     })
   }
+
+  let nodes = Array.from(nodeMap.values())
 
   nodes = radialLayout(nodes, validRelations)
 
@@ -627,12 +761,16 @@ async function loadRelationList() {
   try {
     const res = await getAllRelations()
     relationList.value = res.data || []
-    relationTotal.value = relationList.value.length
+    relationTotal.value = filteredRelationList.value.length
   } catch {
     relationList.value = []
     relationTotal.value = 0
   }
 }
+
+watch(currentCategoryId, () => {
+  relationPage.value = 1
+})
 
 function handleNodeClick(data) {
   if (data.isKnowledge) {
@@ -775,10 +913,24 @@ async function handleDeleteRelation(id) {
   } catch { /* 取消 */ }
 }
 
+function updateTableHeight() {
+  const totalHeight = window.innerHeight
+  const headerHeight = 180
+  const panelHeaderHeight = 56
+  const graphMinHeight = 300
+  const paginationHeight = 60
+  const relationListHeaderHeight = 48
+  
+  const availableHeight = totalHeight - headerHeight - panelHeaderHeight - graphMinHeight - paginationHeight - relationListHeaderHeight - 20
+  tableHeight.value = Math.max(150, Math.floor(availableHeight))
+}
+
 onMounted(() => {
   loadCategoryTree()
   loadAllKnowledgeList()
   loadRelationList()
+  updateTableHeight()
+  window.addEventListener('resize', updateTableHeight)
 })
 </script>
 
@@ -947,6 +1099,9 @@ onMounted(() => {
   padding: 16px;
   border-top: 1px solid #e2e8f0;
   flex-shrink: 0;
+  max-height: 40%;
+  display: flex;
+  flex-direction: column;
 }
 
 .relation-list-header {
@@ -954,6 +1109,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .relation-list-header h4 {
@@ -968,9 +1124,15 @@ onMounted(() => {
   color: #64748b;
 }
 
+.relation-table-wrapper {
+  flex: 1;
+  overflow: hidden;
+}
+
 .relation-pagination {
   display: flex;
   justify-content: flex-end;
   margin-top: 12px;
+  flex-shrink: 0;
 }
 </style>
