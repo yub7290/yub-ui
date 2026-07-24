@@ -91,9 +91,8 @@
               class="upload-preview" fit="cover" />
             <el-upload
               v-else
-              :action="uploadUrl"
               :show-file-list="false"
-              :on-success="handleUploadSuccess"
+              :http-request="handleUploadRequest"
               :before-upload="beforeUpload"
               class="upload-btn"
             >
@@ -126,8 +125,10 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { Plus, FolderOpened } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import YubDialog from '@/components/YubDialog.vue'
 import { http } from '@/utils/http'
+import { uploadImage } from '@/api/edu/upload'
 
 const loading = ref(false)
 const tableData = ref<any[]>([])
@@ -157,8 +158,6 @@ const formData = reactive({
 const formRules = {
   title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
 }
-
-const uploadUrl = '/edu/upload/image'
 
 async function fetchData() {
   loading.value = true
@@ -216,41 +215,44 @@ function handleEdit(row: any) {
 }
 
 function handleDelete(id: number) {
-  uni.showModal({
-    title: '确认删除',
-    content: '确定删除该分享内容吗？',
-    confirmColor: '#f56c6c',
-    success: async (res) => {
-      if (!res.confirm) return
-      try {
-        await http.delete(`/edu/share-content/${id}`)
-        uni.showToast({ title: '删除成功', icon: 'success' })
-        fetchData()
-      } catch {
-        // error handled by request interceptor
-      }
-    },
+  ElMessageBox.confirm('确定删除该分享内容吗？', '确认删除', {
+    type: 'warning',
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
   })
+    .then(async () => {
+      await http.delete(`/edu/share-content/${id}`)
+      ElMessage.success('删除成功')
+      fetchData()
+    })
+    .catch(() => {})
 }
 
 function beforeUpload(file: File) {
   const isImage = file.type.startsWith('image/')
   if (!isImage) {
-    uni.showToast({ title: '请上传图片文件', icon: 'none' })
+    ElMessage.error('请上传图片文件')
     return false
   }
   const isLt2M = file.size / 1024 / 1024 < 2
   if (!isLt2M) {
-    uni.showToast({ title: '图片大小不能超过2MB', icon: 'none' })
+    ElMessage.error('图片大小不能超过2MB')
     return false
   }
   return true
 }
 
-function handleUploadSuccess(res: any) {
-  if (res.code === 200 && res.data) {
-    formData.imageUrl = res.data
-  }
+function handleUploadRequest(options: any) {
+  const file = options.file
+  uploadImage(file, 'edu/share-content')
+    .then((res) => {
+      formData.imageUrl = res.data
+      options.onSuccess(res)
+    })
+    .catch(() => {
+      ElMessage.error('图片上传失败')
+      options.onError()
+    })
 }
 
 async function handleSubmit() {
@@ -262,7 +264,7 @@ async function handleSubmit() {
     } else {
       await http.post('/edu/share-content', formData)
     }
-    uni.showToast({ title: '操作成功', icon: 'success' })
+    ElMessage.success('操作成功')
     dialogVisible.value = false
     fetchData()
   } catch {
